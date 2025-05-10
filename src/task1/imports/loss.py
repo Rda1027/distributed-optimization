@@ -4,6 +4,9 @@ import numpy as np
 
 class Loss:
     def __init__(self, fn, fn_grad):
+        """
+            Wrapper that contains the definition of a function and its gradient.
+        """
         self.__fn = fn
         self.__fn_grad = fn_grad
 
@@ -39,7 +42,7 @@ class TargetLocalizationLoss(Loss):
                 ( est_targets_dist[j]**2 - np.linalg.norm(z[j] - robot_pos, 2)**2 )**2 
                 for j in range(len(est_targets_dist)) 
             )
-            return val.flatten()
+            return val
         return _out
 
     def __grad_builder(self, robot_pos, est_targets_dist, num_targets, vars_dim):
