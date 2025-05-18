@@ -109,5 +109,5 @@ def plot_animation(
         frames = range(0, len(history_estimates), sample_size)
 
     plt.figure(figsize=(10, 5))
-    anim = matplotlib.animation.FuncAnimation(plt.gcf(), __update, frames, interval=50, blit=False)
+    anim = matplotlib.animation.FuncAnimation(plt.gcf(), __update, frames, interval=100, blit=False)
     return anim

@@ -9,9 +9,8 @@ import numpy.typing as npt
 
 def create_network_of_agents(
         num_agents: int, 
-        adjacency_form: Literal["unweighted", "row-stochastic", "columm-stochastic", "doubly-stochastic"] = "unweighted",
-        graph_algorithm: Literal["erdos_renyi", "cycle_graph", "path_graph", "star_graph"] = "erdos_renyi",
-        erdos_renyi_p: float = 0.3, 
+        graph_form: Literal["complete_graph", "binomial_graph", "cycle_graph", "path_graph", "star_graph"] = "binomial_graph",
+        binomial_graph_p: float = 0.3, 
         seed: int = 42
     ) -> tuple[nx.Graph, npt.NDArray]:
     """
@@ -22,10 +21,10 @@ def create_network_of_agents(
                 Number of agents.
             adjacency_form (Literal["unweighted", "row-stochastic", "columm-stochastic", "doubly-stochastic"]):
                 Structure of the adjacency matrix.
-            graph_algorithm (Literal["erdos_renyi"]):
+            graph_form (Literal["complete_graph", "binomial_graph", "cycle_graph", "path_graph", "star_graph"]):
                 Algorithm or structure of the graph.
-            erdos_renyi_p (float):
-                Edge probability for Erdős-Rényi graph.
+            binomial_graph_p (float):
+                Edge probability for the Erdős-Rényi graph.
             seed (int):
                 Seed for non-deterministic operations.
 
@@ -36,50 +35,39 @@ def create_network_of_agents(
                 Adjacency matrix.
     """
     # Create communication graph
-    G = None
-    while (G is None) or (not nx.is_connected(G)):
-        match graph_algorithm:
-            case "erdos_renyi":
-                G = nx.erdos_renyi_graph(n=num_agents, p=erdos_renyi_p, seed=seed)
-            case "cycle_graph":
-                G = nx.cycle_graph(num_agents)
-            case "path_graph":
-                G = nx.path_graph(num_agents)
-            case "star_graph":
-                G = nx.star_graph(num_agents-1)
-            case _:
-                raise RuntimeError("Invalid graph algorithm")
-        seed += 1
+    match graph_form:
+        case "complete_graph":
+            G = nx.complete_graph(num_agents)
+        case "cycle_graph":
+            G = nx.cycle_graph(num_agents)
+        case "path_graph":
+            G = nx.path_graph(num_agents)
+        case "star_graph":
+            G = nx.star_graph(num_agents-1)
+        case "binomial_graph":
+            G = None
+            while (G is None) or (not nx.is_connected(G)):
+                G = nx.binomial_graph(n=num_agents, p=binomial_graph_p, seed=seed)
+                seed += 1
+        case _:
+            raise RuntimeError("Invalid graph algorithm")
     # Add self-loops
     G.add_edges_from([(i, i) for i in range(num_agents)])
 
     # Create adjacency matrix
     adj_matrix = nx.adjacency_matrix(G).toarray().astype(np.float32)
-    match adjacency_form:
-        case "unweighted":
-            pass
-        case "row-stochastic":
-            adj_matrix = adj_matrix / np.sum(adj_matrix, axis=1, keepdims=True)
-            assert np.all(np.isclose(adj_matrix.sum(axis=1), np.ones((adj_matrix.shape[0]))))
-        case "column-stochastic":
-            adj_matrix = adj_matrix / np.sum(adj_matrix, axis=0, keepdims=True)
-            assert np.all(np.isclose(adj_matrix.sum(axis=0), np.ones((adj_matrix.shape[1]))))
-        case "doubly-stochastic":
-            while (
-                not np.all(np.isclose(adj_matrix.sum(axis=0), np.ones((adj_matrix.shape[1])))) or
-                not np.all(np.isclose(adj_matrix.sum(axis=1), np.ones((adj_matrix.shape[0]))))
-            ):
-                adj_matrix = adj_matrix / adj_matrix.sum(axis=0, keepdims=True)
-                adj_matrix = adj_matrix / adj_matrix.sum(axis=1, keepdims=True)
-                adj_matrix = np.abs(adj_matrix)
-        case _:
-            raise RuntimeError("Invalid matrix form")
+    degrees = np.sum(adj_matrix, axis=0)
+    for i in range(num_agents):
+        for j in range(num_agents):
+            if (i != j) and adj_matrix[i, j] != 0:
+                adj_matrix[i, j] = 1 / ( 1 + max(degrees[i], degrees[j]) )
+        adj_matrix[i, i] = 1 - (sum(adj_matrix[i]) - adj_matrix[i, i])
 
     return G, adj_matrix
 
 
 def create_quadratic_problem(
-        A: npt.NDArray,
+        num_agents: int, 
         vars_dim: int,
         seed: int = 42
     ) -> tuple[npt.NDArray, list[QuadraticFunction], QuadraticFunction, npt.NDArray]:
@@ -87,8 +75,8 @@ def create_quadratic_problem(
         Creates a network of agents each assigned to a local quadratic function with randomized coefficients.
 
         Args:
-            A (npt.NDArray):
-                Adjacency matrix of the network of agents.
+            num_agents (int):
+                Number of agents.
             vars_dim (int):
                 Dimensions of the parameters.
             seed (int):
@@ -102,9 +90,8 @@ def create_quadratic_problem(
             optimal_z (npt.NDArray):
                 Optimal set of parameters to minimize the global quadratic function.
     """
-    num_agents = A.shape[0]
-
     rng = np.random.default_rng(seed)
+
     # Define local coefficients Q and r
     local_Qs = [ np.diag( rng.uniform(size=vars_dim) ) for _ in range(num_agents)] 
     local_rs = [ rng.normal(size=vars_dim) for _ in range(num_agents) ]
@@ -119,7 +106,7 @@ def create_quadratic_problem(
 
 
 def create_position_tracking_problem(
-        A: npt.NDArray,
+        num_robots: int,
         num_targets: int,
         vars_dim: int,
         noise_type: Literal["gaussian", "poisson"] = "gaussian",
@@ -133,8 +120,8 @@ def create_position_tracking_problem(
         Creates a network of robots each assigned to a local loss function to solve the distributed position tracking problem.
 
         Args:
-            A (npt.NDArray):
-                Adjacency matrix of the network of robots.
+            num_robots (int):
+                Number of robots.
             num_targets (int):
                 Number of targets to track.
             vars_dim (int):
@@ -166,12 +153,11 @@ def create_position_tracking_problem(
             case "gaussian":
                 return rng.normal(gaussian_mean, gaussian_std)
             case "poisson":
-                return rng.normal(poisson_lambda)
+                return rng.poisson(poisson_lambda)
     
     rng = np.random.default_rng(seed)
 
     # Generate targets and robots positions
-    num_robots = A.shape[0]
     targets_pos_real = rng.random(size=(num_targets, vars_dim))
     robots_pos = rng.random(size=(num_robots, vars_dim))
 

@@ -4,9 +4,9 @@ import numpy.typing as npt
 
 
 
-def get_average_estimated_distance(robots_estimates: npt.NDArray, targets_pos_real: npt.NDArray) -> float:
+def get_average_estimate_error(robots_estimates: npt.NDArray, targets_pos_real: npt.NDArray) -> float:
     """
-        Computes the average distance between the target's estimated and real positions.
+        Computes the average error between the target's estimated and real positions.
 
         Args:
             robots_estimates (npt.NDArray):
@@ -15,8 +15,8 @@ def get_average_estimated_distance(robots_estimates: npt.NDArray, targets_pos_re
                 Real position of the targets ([NUM_TARGETS x VARS_DIM]).
         
         Returns:
-            average_distance (float):
-                Average distance between estimated and real positions, considering each individual estimate.
+            average_error (float):
+                Average error between estimated and real positions, considering each individual estimate.
     """
     num_robots = len(robots_estimates)
     num_targets = len(targets_pos_real)
@@ -24,6 +24,18 @@ def get_average_estimated_distance(robots_estimates: npt.NDArray, targets_pos_re
     
     for i in range(num_robots):
         for j in range(num_targets):
-            dists += np.linalg.norm( robots_estimates[i, j] - targets_pos_real[j] )
+            dists += np.linalg.norm(robots_estimates[i, j] - targets_pos_real[j])
     
     return dists / (num_robots*num_targets)
+
+
+
+def get_average_consensus_error(z: npt.NDArray):
+    num_agents = len(z)
+    errors = []
+
+    for i in range(num_agents):
+        for j in range(i+1, num_agents):
+            errors.append( np.linalg.norm(z[i] - z[j], 2) )
+
+    return np.mean(errors)
