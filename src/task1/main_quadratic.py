@@ -166,7 +166,8 @@ if __name__ == "__main__":
     parser.add_argument("--many-agents-low-dim", action="store_true", default=False)
     parser.add_argument("--many-agents-high-dim", action="store_true", default=False)
     parser.add_argument("--convergence", action="store_true", default=False)
-    parser.add_argument("--centralized", action="store_true", default=False)
+    parser.add_argument("--centralized-small", action="store_true", default=False)
+    parser.add_argument("--centralized-large", action="store_true", default=False)
     parser.add_argument("--seed", type=int, default=42, help="Initialization seed")
     args = parser.parse_args()
 
@@ -178,7 +179,7 @@ if __name__ == "__main__":
             graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
             alpha = 1e-1,
             num_iters = 100,
-            seed = 42
+            seed = args.seed
         )
 
     if args.few_agents_high_dim:
@@ -189,7 +190,7 @@ if __name__ == "__main__":
             graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
             alpha = 1e-1,
             num_iters = 100,
-            seed = 42
+            seed = args.seed
         )
 
     if args.many_agents_low_dim:
@@ -200,7 +201,7 @@ if __name__ == "__main__":
             graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
             alpha = 1e-1,
             num_iters = 100,
-            seed = 42
+            seed = args.seed
         )
 
     if args.many_agents_high_dim:
@@ -211,7 +212,7 @@ if __name__ == "__main__":
             graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
             alpha = 1e-1,
             num_iters = 100,
-            seed = 42
+            seed = args.seed
         )
 
     if args.convergence:
@@ -222,10 +223,21 @@ if __name__ == "__main__":
             graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
             alpha = 1e-1,
             num_iters = 1000,
-            seed = 42
+            seed = args.seed
         )
 
-    if args.centralized:
+    if args.centralized_small:
+        print("\n--- Comparison with centralized gradient ---")
+        quadratic_centralized(
+            num_agents = 5,
+            vars_dim = 3,
+            graph_form = "complete_graph",
+            alpha = 1e-1,
+            num_iters = 1000,
+            seed = args.seed
+        )
+
+    if args.centralized_large:
         print("\n--- Comparison with centralized gradient ---")
         quadratic_centralized(
             num_agents = 15,
@@ -233,5 +245,5 @@ if __name__ == "__main__":
             graph_form = "complete_graph",
             alpha = 1e-1,
             num_iters = 1000,
-            seed = 42
+            seed = args.seed
         )
