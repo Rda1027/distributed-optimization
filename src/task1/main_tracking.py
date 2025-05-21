@@ -266,6 +266,35 @@ def tracking_noise(num_robots, num_targets, vars_dim, graph_form, alpha, num_ite
     plt.show()
 
 
+def tracking_noise_cancel(num_robots_list, num_targets, vars_dim, graph_form, alpha, num_iters, noise_args, num_runs, seed):
+    """
+        Experiment to compare the algorithm with different graphs.
+    """
+    rng = np.random.default_rng(seed)
+    avg_errors = { num_robots: [] for num_robots in num_robots_list }
+
+    for num_robots in num_robots_list:
+        for _ in range(num_runs):
+            network_seed = int(rng.integers(0, 2**32))
+            G, A = create_network_of_agents(num_robots, graph_form, seed=network_seed)
+            local_losses, global_loss, (robots_pos, targets_pos_real, est_targets_dists) = create_position_tracking_problem(
+                num_robots = num_robots,
+                num_targets = num_targets,
+                vars_dim = vars_dim,
+                seed = int(rng.integers(0, 2**32)),
+                **noise_args
+            )
+            z0 = rng.random(size=(num_robots, num_targets*vars_dim))
+
+            history_z = gradient_tracking(local_losses, z0.copy(), A, alpha, num_iters)
+            history_z = history_z.reshape(-1, num_robots, num_targets, vars_dim)
+            avg_errors[num_robots].append( get_average_estimate_error(history_z[-1], targets_pos_real) )
+
+    plt.plot(num_robots_list, [ np.mean(avg_errors[num_robots]) for num_robots in num_robots_list ])
+    plt.xlabel("Num robots")
+    plt.tight_layout()
+    plt.show()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="Model training")
@@ -428,3 +457,21 @@ if __name__ == "__main__":
                 ],
                 seed = args.seed
             )
+
+
+    tracking_noise_cancel(
+        num_robots_list = [5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+        num_targets = 1,
+        vars_dim = 2,
+        graph_form = "complete_graph",
+        alpha = 1e-2,
+        num_iters = 1000,
+        noise_args = { 
+            "noise_type": "gaussian",
+            "noise_ratio": 0.01, 
+            "gaussian_mean": 0.0, 
+            "gaussian_std": 1.0 
+        },
+        num_runs = 5,
+        seed = args.seed
+    )
