@@ -18,6 +18,9 @@ plt.rcParams["legend.fontsize"] = 12
 
 
 def plot_loss(loss_fn, history_z, label):
+    """
+        Plots the loss function, handling both centralized and distributed cases.
+    """
     if history_z.ndim == 3: # Centralized case
         plt.plot([ loss_fn(z) for z in history_z ], label=label)
     elif history_z.ndim == 4: # Distributed case
@@ -26,6 +29,9 @@ def plot_loss(loss_fn, history_z, label):
 
 
 def plot_gradient(loss_fn, history_z, label):
+    """
+        Plots the norm of the gradient of the loss, handling both centralized and distributed cases.
+    """
     if history_z.ndim == 3: # Centralized case
         plt.plot([ np.linalg.norm( loss_fn.grad(z) ) for z in history_z ], label=label)
     elif history_z.ndim == 4: # Distributed case
@@ -41,6 +47,7 @@ def tracking_animate(num_robots, num_targets, graph_form, alpha, num_iters, nois
     rng = np.random.default_rng(seed)
     vars_dim = 2
     
+    # Create problem
     G, A = create_network_of_agents(num_robots, graph_form, seed=int(rng.integers(0, 2**32)))
     local_losses, global_loss, (robots_pos, targets_pos_real, est_targets_dists) = create_position_tracking_problem(
         num_robots = num_robots,
@@ -51,26 +58,28 @@ def tracking_animate(num_robots, num_targets, graph_form, alpha, num_iters, nois
     )
     z0 = rng.random(size=(num_robots, num_targets*vars_dim))
 
+    # Solve problem
     history_z = gradient_tracking(local_losses, z0.copy(), A, alpha, num_iters)
     history_z = history_z.reshape(-1, num_robots, num_targets, vars_dim)
 
+    # Results + animation
     print(
         f"Loss: {sum( local_losses[i](history_z[-1, i].flatten()) for i in range(num_robots) ):.10f}"
         f" | Average estimated distance error: {get_average_estimate_error(history_z[-1], targets_pos_real):.10f}"
     )
-
     anim = plot_animation(robots_pos, targets_pos_real, history_z, ff_threshold=50)
     plt.show()
 
 
 def tracking_comparison(num_robots, num_targets, vars_dim, graph_forms, alpha, num_iters, noise_args, seed):
     """
-        Experiment to compare the algorithm with different graphs.
+        Experiment to compare the algorithm with different graph patterns.
     """
     rng = np.random.default_rng(seed)
     network_seed = int(rng.integers(0, 2**32))
     history_z = {}
     
+    # Define the same problem for all graph patterns
     local_losses, global_loss, (robots_pos, targets_pos_real, est_targets_dists) = create_position_tracking_problem(
         num_robots = num_robots,
         num_targets = num_targets,
@@ -80,12 +89,14 @@ def tracking_comparison(num_robots, num_targets, vars_dim, graph_forms, alpha, n
     )
     z0 = rng.random(size=(num_robots, num_targets*vars_dim))
 
+    # Solve for all graph patterns.
     for graph_form in graph_forms:
         G, A = create_network_of_agents(num_robots, graph_form, seed=network_seed)
 
         history_z[graph_form] = gradient_tracking(local_losses, z0.copy(), A, alpha, num_iters)
         history_z[graph_form] = history_z[graph_form].reshape(-1, num_robots, num_targets, vars_dim)
 
+    # Present results
     for graph_form in graph_forms:
         print(
             f"{f'[{graph_form}]':<20} Loss: {sum( local_losses[i](history_z[graph_form][-1, i].flatten()) for i in range(num_robots) ):.10f}"
@@ -110,14 +121,6 @@ def tracking_comparison(num_robots, num_targets, vars_dim, graph_forms, alpha, n
     plt.ylabel("$\\left\\Vert \\nabla l(z^k) \\right\\Vert_2$ (log)")
     plt.legend()
 
-    # plt.subplot(2, 2, 3)
-    # plt.title("Average estimated error")
-    # for graph_form in graph_forms:
-    #     plt.plot([get_average_estimate_error(z, targets_pos_real) for z in history_z[graph_form]], label=f"{graph_form.replace('_', '-')}")
-    # plt.xlabel("Iteration")
-    # plt.yscale("log")
-    # plt.legend()
-
     plt.subplot(2, 2, 4)
     plt.title("Consensus error")
     for graph_form in graph_forms:
@@ -137,6 +140,7 @@ def tracking_centralized(num_robots, num_targets, vars_dim, graph_form, alpha, n
     """
     rng = np.random.default_rng(seed)
     
+    # Create problem
     G, A = create_network_of_agents(num_robots, graph_form, seed=int(rng.integers(0, 2**32)))
     local_losses, global_loss, (robots_pos, targets_pos_real, est_targets_dists) = create_position_tracking_problem(
         num_robots = num_robots,
@@ -147,11 +151,13 @@ def tracking_centralized(num_robots, num_targets, vars_dim, graph_form, alpha, n
     )
     z0 = rng.random(size=(num_robots, num_targets*vars_dim))
 
+    # Solve problem
     history_z = gradient_tracking(local_losses, z0.copy(), A, alpha, num_iters)
     history_z = history_z.reshape(-1, num_robots, num_targets, vars_dim)
     history_z_centr = gradient_descent(local_losses, z0[0].copy(), alpha, num_iters)
     history_z_centr = history_z_centr.reshape(-1, 1, num_targets, vars_dim)
 
+    # Present results
     print(
         f"Loss {'gradient tracking':<20}: {sum( local_losses[i](history_z[-1, i].flatten()) for i in range(num_robots) ):.10f}"
         f" | Average estimated distance error: {get_average_estimate_error(history_z[-1], targets_pos_real):.10f}"
@@ -193,6 +199,7 @@ def tracking_noise(num_robots, num_targets, vars_dim, graph_form, alpha, num_ite
     history_z_list = []
     local_losses_list = []
     
+    # Create labels for plots and prints
     match noise_type:
         case "gaussian":
             labels = [f"{noise_args['noise_ratio']} x N({noise_args['gaussian_mean']}, {noise_args['gaussian_std']}^2)" for noise_args in noise_args_list]
@@ -201,10 +208,11 @@ def tracking_noise(num_robots, num_targets, vars_dim, graph_form, alpha, num_ite
             labels = [f"{noise_args['noise_ratio']} x Pois({noise_args['poisson_lambda']})" for noise_args in noise_args_list]
             labels_math = [f"${noise_args['noise_ratio']} \\times \\text{{Pois}}({noise_args['poisson_lambda']})$" for noise_args in noise_args_list]
 
-
+    # Use same network for varying noises
     G, A = create_network_of_agents(num_robots, graph_form, seed=network_seed)
     z0 = rng.random(size=(num_robots, num_targets*vars_dim))
 
+    # Create problem and solve for varying noises.
     for noise_args in noise_args_list:
         local_losses, global_loss, (robots_pos, targets_pos_real, est_targets_dists) = create_position_tracking_problem(
             num_robots = num_robots,
@@ -221,6 +229,7 @@ def tracking_noise(num_robots, num_targets, vars_dim, graph_form, alpha, num_ite
         history_z_list.append(history_z)
         local_losses_list.append(local_losses)
 
+    # Present results
     for j in range(len(noise_args_list)):
         print(
             f"{f'[{labels[j]}]':<25} Loss: {sum( local_losses_list[j][i](history_z_list[j][-1, i].flatten()) for i in range(num_robots) ):.10f}"
@@ -245,14 +254,6 @@ def tracking_noise(num_robots, num_targets, vars_dim, graph_form, alpha, num_ite
     plt.ylabel("$\\left\\Vert \\nabla l(z^k) \\right\\Vert_2$ (log)")
     plt.legend()
 
-    # plt.subplot(2, 2, 3)
-    # plt.title("Average estimated error")
-    # for i in range(len(noise_args_list)):
-    #     plt.plot([get_average_estimate_error(z, targets_pos_real) for z in history_z_list[i]], label=f"{labels_math[i]}")
-    # plt.xlabel("Iteration")
-    # plt.yscale("log")
-    # plt.legend()
-
     plt.subplot(2, 2, 4)
     plt.title("Consensus error")
     for i in range(len(noise_args_list)):
@@ -268,12 +269,14 @@ def tracking_noise(num_robots, num_targets, vars_dim, graph_form, alpha, num_ite
 
 def tracking_noise_cancel(num_robots_list, num_targets, vars_dim, graph_form, alpha, num_iters, noise_args, num_runs, seed):
     """
-        Experiment to compare the algorithm with different graphs.
+        Experiment to analyze the asymptotic behavior of noise for varying number of tracking robots.
     """
     rng = np.random.default_rng(seed)
     avg_errors = { num_robots: [] for num_robots in num_robots_list }
 
+    # Create and solve problem for varying number of tracking robots
     for num_robots in num_robots_list:
+        # Perform multiple runs for each number of robots
         for _ in range(num_runs):
             network_seed = int(rng.integers(0, 2**32))
             G, A = create_network_of_agents(num_robots, graph_form, seed=network_seed)
@@ -290,6 +293,7 @@ def tracking_noise_cancel(num_robots_list, num_targets, vars_dim, graph_form, al
             history_z = history_z.reshape(-1, num_robots, num_targets, vars_dim)
             avg_errors[num_robots].append( get_average_estimate_error(history_z[-1], targets_pos_real) )
 
+    # Present averaged results
     plt.plot(num_robots_list, [ np.mean(avg_errors[num_robots]) for num_robots in num_robots_list ])
     plt.xlabel("Num robots")
     plt.tight_layout()
@@ -306,6 +310,7 @@ if __name__ == "__main__":
     parser.add_argument("--gaussian-noise", action="store_true", default=False)
     parser.add_argument("--poisson-noise", action="store_true", default=False)
     parser.add_argument("--noise-rates", action="store_true", default=False)
+    parser.add_argument("--noise-cancel", action="store_true", default=False)
     parser.add_argument("--seed", type=int, default=42, help="Initialization seed")
     args = parser.parse_args()
 
@@ -458,20 +463,21 @@ if __name__ == "__main__":
                 seed = args.seed
             )
 
-
-    tracking_noise_cancel(
-        num_robots_list = [5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
-        num_targets = 1,
-        vars_dim = 2,
-        graph_form = "complete_graph",
-        alpha = 1e-2,
-        num_iters = 1000,
-        noise_args = { 
-            "noise_type": "gaussian",
-            "noise_ratio": 0.01, 
-            "gaussian_mean": 0.0, 
-            "gaussian_std": 1.0 
-        },
-        num_runs = 5,
-        seed = args.seed
-    )
+    if arg.noise_cancel:
+        print("\n--- Testing asymptotic behavior of noise ---")
+        tracking_noise_cancel(
+            num_robots_list = [5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+            num_targets = 1,
+            vars_dim = 2,
+            graph_form = "complete_graph",
+            alpha = 1e-2,
+            num_iters = 1000,
+            noise_args = { 
+                "noise_type": "gaussian",
+                "noise_ratio": 0.01, 
+                "gaussian_mean": 0.0, 
+                "gaussian_std": 1.0 
+            },
+            num_runs = 5,
+            seed = args.seed
+        )

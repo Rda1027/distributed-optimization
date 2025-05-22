@@ -30,7 +30,18 @@ def get_average_estimate_error(robots_estimates: npt.NDArray, targets_pos_real: 
 
 
 
-def get_average_consensus_error(z: npt.NDArray):
+def get_average_consensus_error(z: npt.NDArray) -> float:
+    """
+        Computes the average consensus error of the agents' estimates computed as the average norm-2 distance.
+
+        Args:
+            z (npt.NDArray):
+                Estimates of the agents.
+        
+        Returns:
+            average_consensus_error (float):
+                Average consensus error.
+    """
     num_agents = len(z)
     errors = []
 

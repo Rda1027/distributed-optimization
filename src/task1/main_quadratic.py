@@ -17,6 +17,9 @@ plt.rcParams["legend.fontsize"] = 12
 
 
 def plot_loss(loss_fn, history_z, label):
+    """
+        Plots the cost function, handling both centralized and distributed cases.
+    """
     if history_z.ndim == 2: # Centralized case
         plt.plot([ loss_fn(z) for z in history_z ], label=label)
     elif history_z.ndim == 3: # Distributed case
@@ -24,6 +27,9 @@ def plot_loss(loss_fn, history_z, label):
 
 
 def plot_gradient(loss_fn, history_z, label):
+    """
+        Plots the norm of the gradient of the cost, handling both centralized and distributed cases.
+    """
     if history_z.ndim == 2: # Centralized case
         plt.plot([ np.linalg.norm( loss_fn.grad(z), 2 ) for z in history_z ], label=label)
     elif history_z.ndim == 3: # Distributed case
@@ -32,6 +38,9 @@ def plot_gradient(loss_fn, history_z, label):
 
 
 def plot_distance_to_optimum(loss_fn, history_z, optimum, label):
+    """
+        Plots the distance of the loss computed at the estimates to the optimum, handling both centralized and distributed cases.
+    """
     if history_z.ndim == 2: # Centralized case
         plt.plot([ abs(loss_fn(z) - optimum) for z in history_z ], label=label)
     elif history_z.ndim == 3: # Distributed case
@@ -42,7 +51,7 @@ def plot_distance_to_optimum(loss_fn, history_z, optimum, label):
 
 def quadratic_comparison(num_agents, vars_dim, graph_forms, alpha, num_iters, seed):
     """
-        Experiment to compare the gradient tracking algorithm with different graphs.
+        Experiment to compare the gradient tracking algorithm with different graph patterns.
     """
     rng = np.random.default_rng(seed)
     network_seed = int(rng.integers(0, 2**32))
@@ -50,17 +59,18 @@ def quadratic_comparison(num_agents, vars_dim, graph_forms, alpha, num_iters, se
     history_z = {}
     estimated_cost = {}
 
-    # Define the same problem for all the graph forms
+    # Define the same problem for all the graph patterns
     local_quadratics, global_quadratic, optimal_z = create_quadratic_problem(num_agents, vars_dim, seed=problem_seed)
     optimal_cost = global_quadratic(optimal_z)
     z0 = rng.random(size=(num_agents, vars_dim))
 
-    # Solve for each graph form
+    # Solve for each graph pattern
     for graph_form in graph_forms:
         G, A = create_network_of_agents(num_agents, graph_form, seed=network_seed)
         history_z[graph_form] = gradient_tracking(local_quadratics, z0.copy(), A, alpha, num_iters)
         estimated_cost[graph_form] = sum( local_quadratics[i](history_z[graph_form][-1, i]) for i in range(num_agents) )
 
+    # Present results
     print(f"Cost {'optimal':<15}: {optimal_cost:.10f}")
     for graph_form in graph_forms:
         print(f"Cost {graph_form:<15}: {estimated_cost[graph_form]:.10f} | Diff: {abs(estimated_cost[graph_form] - optimal_cost):.10f}")
@@ -123,6 +133,7 @@ def quadratic_centralized(num_agents, vars_dim, graph_form, alpha, num_iters, se
     estimated_cost = sum(local_quadratics[i](history_z[-1, i]) for i in range(num_agents))
     estimated_cost_centr = global_quadratic(history_z_centr[-1])
 
+    # Present results
     print(f"Cost {'optimal':<20}: {optimal_cost:.10f}")
     print(f"Cost {'gradient tracking':<20}: {estimated_cost:.10f} | Diff: {abs(estimated_cost - optimal_cost):.10f}")
     print(f"Cost {'centralized gradient':<20}: {estimated_cost_centr:.10f} | Diff: {abs(estimated_cost_centr - optimal_cost):.10f}")

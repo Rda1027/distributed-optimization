@@ -61,7 +61,7 @@ def gradient_descent(
         z0: npt.NDArray, 
         alpha: float, 
         num_iters: int
-    ):
+    ) -> npt.NDArray:
     """
         Runs the centralized gradient descent algorithm to minimize the summation of a list of loss functions.
 
