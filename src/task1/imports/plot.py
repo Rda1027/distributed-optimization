@@ -34,13 +34,13 @@ def plot_scenario(
 
     # Plot robots
     for i in range(len(robots_pos)):
-        plt.plot(robots_pos[i][0], robots_pos[i][1], "s", color=__get_color(i))
+        plt.plot(robots_pos[i][0], robots_pos[i][1], "s", color=__get_color(i), label=f"Robot-{i}")
 
     # Plot real targets
     plt.plot(
         [targets_pos_real[i, 0] for i in range(len(targets_pos_real))], 
         [targets_pos_real[i, 1] for i in range(len(targets_pos_real))], 
-        "X", color="tab:red", label="One Piece"
+        "X", color="tab:red", label="Target"
     )
 
     # Plot robots estimated distance to target
@@ -57,7 +57,7 @@ def plot_scenario(
             plt.plot(
                 [est_targets_pos[i, j, 0] for j in range(len(est_targets_pos[i]))], 
                 [est_targets_pos[i, j, 1] for j in range(len(est_targets_pos[i]))], 
-                "o", color=__get_color(i), alpha=0.6, label=f"{i}-Maybe One Piece?"
+                "o", color=__get_color(i), alpha=0.6, label=f"Robot-{i} estimates"
             )
 
     plt.axis("scaled")
