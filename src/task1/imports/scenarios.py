@@ -10,7 +10,8 @@ import numpy.typing as npt
 def create_network_of_agents(
         num_agents: int, 
         graph_form: Literal["complete_graph", "binomial_graph", "cycle_graph", "path_graph", "star_graph"] = "binomial_graph",
-        binomial_graph_p: float = 0.3, 
+        binomial_graph_p: float = 0.3,
+        dtype = np.float64,
         seed: int = 42
     ) -> tuple[nx.Graph, npt.NDArray]:
     """
@@ -25,6 +26,8 @@ def create_network_of_agents(
                 Algorithm or structure of the graph.
             binomial_graph_p (float):
                 Edge probability for the Erdős-Rényi graph.
+            dtype:
+                Data type of the adjacency matrix.
             seed (int):
                 Seed for non-deterministic operations.
 
@@ -55,7 +58,7 @@ def create_network_of_agents(
     G.add_edges_from([(i, i) for i in range(num_agents)])
 
     # Create adjacency matrix
-    adj_matrix = nx.adjacency_matrix(G).toarray().astype(np.float32)
+    adj_matrix = nx.adjacency_matrix(G).toarray().astype(dtype)
     degrees = np.sum(adj_matrix, axis=0)
     for i in range(num_agents):
         for j in range(num_agents):
