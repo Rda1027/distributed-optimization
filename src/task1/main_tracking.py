@@ -67,7 +67,7 @@ def tracking_animate(num_robots, num_targets, graph_form, alpha, num_iters, nois
         f"Loss: {sum( local_losses[i](history_z[-1, i].flatten()) for i in range(num_robots) ):.10f}"
         f" | Average estimated distance error: {get_average_estimate_error(history_z[-1], targets_pos_real):.10f}"
     )
-    anim = plot_animation(robots_pos, targets_pos_real, history_z, ff_threshold=50)
+    anim = plot_animation(robots_pos, targets_pos_real, history_z, ff_threshold=50, sample_size=50)
     plt.show()
 
 
@@ -318,12 +318,12 @@ if __name__ == "__main__":
         print("--- Running with animation ---")
         tracking_animate(
             num_robots = 5,
-            num_targets = 2,
+            num_targets = 1,
             graph_form = "complete_graph",
             alpha = 1e-2,
-            num_iters = 1000,
+            num_iters = 10000,
             noise_args = {
-                "noise_ratio": 0.01,
+                "noise_ratio": 0.05,
                 "noise_type": "gaussian",
                 "gaussian_mean": 0.0,
                 "gaussian_std": 1.0,
@@ -339,12 +339,12 @@ if __name__ == "__main__":
             vars_dim = 2,
             graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
             alpha = 1e-2,
-            num_iters = 2000,
+            num_iters = 10000,
             noise_args = {
+                "noise_ratio": 0.05,
                 "noise_type": "gaussian",
                 "gaussian_mean": 0.0,
                 "gaussian_std": 1.0,
-                "noise_ratio": 0.01,
             },
             seed = args.seed
         )
@@ -357,12 +357,12 @@ if __name__ == "__main__":
             vars_dim = 2,
             graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
             alpha = 1e-2,
-            num_iters = 2000,
+            num_iters = 10000,
             noise_args = {
+                "noise_ratio": 0.05,
                 "noise_type": "gaussian",
                 "gaussian_mean": 0.0,
                 "gaussian_std": 1.0,
-                "noise_ratio": 0.01,
             },
             seed = args.seed
         )
@@ -375,12 +375,12 @@ if __name__ == "__main__":
             vars_dim = 2,
             graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
             alpha = 1e-2,
-            num_iters = 2000,
+            num_iters = 10000,
             noise_args = {
+                "noise_ratio": 0.05,
                 "noise_type": "gaussian",
                 "gaussian_mean": 0.0,
                 "gaussian_std": 1.0,
-                "noise_ratio": 0.01,
             },
             seed = args.seed
         )
@@ -388,14 +388,14 @@ if __name__ == "__main__":
     if args.centralized:
         print("\n--- Comparison with centralized gradient ---")
         tracking_centralized(
-            num_robots = 5,
+            num_robots = 15,
             num_targets = 3,
             vars_dim = 2,
             graph_form = "complete_graph",
             alpha = 1e-2,
-            num_iters = 2000,
+            num_iters = 10000,
             noise_args = {
-                "noise_ratio": 0.1,
+                "noise_ratio": 0.05,
                 "noise_type": "gaussian",
                 "gaussian_mean": 0.0,
                 "gaussian_std": 1.0,
@@ -406,64 +406,63 @@ if __name__ == "__main__":
     if args.gaussian_noise:
         print("\n--- Comparison between different Gaussian noises ---")
         tracking_noise(
-                num_robots = 15,
-                num_targets = 3,
-                vars_dim = 2,
-                graph_form = "complete_graph",
-                alpha = 1e-2,
-                num_iters = 1000,
-                noise_type = "gaussian",
-                noise_args_list = [
-                    { "noise_ratio": 0.1, "gaussian_mean": 0.0, "gaussian_std": 0.5 },
-                    { "noise_ratio": 0.1, "gaussian_mean": 0.0, "gaussian_std": 1.0 },
-                    { "noise_ratio": 0.1, "gaussian_mean": 0.0, "gaussian_std": 1.5 },
-                    { "noise_ratio": 0.1, "gaussian_mean": 1.0, "gaussian_std": 0.5 },
-                    { "noise_ratio": 0.1, "gaussian_mean": 1.0, "gaussian_std": 1.0 },
-                    { "noise_ratio": 0.1, "gaussian_mean": 1.0, "gaussian_std": 1.5 },
-                ],
-                seed = args.seed
-            )
+            num_robots = 15,
+            num_targets = 1,
+            vars_dim = 2,
+            graph_form = "complete_graph",
+            alpha = 1e-2,
+            num_iters = 5000,
+            noise_type = "gaussian",
+            noise_args_list = [
+                { "noise_ratio": 0.1, "gaussian_mean": 0.0, "gaussian_std": 0.5 },
+                { "noise_ratio": 0.1, "gaussian_mean": 0.0, "gaussian_std": 1.0 },
+                { "noise_ratio": 0.1, "gaussian_mean": 0.0, "gaussian_std": 1.5 },
+                { "noise_ratio": 0.1, "gaussian_mean": 1.0, "gaussian_std": 0.5 },
+                { "noise_ratio": 0.1, "gaussian_mean": 1.0, "gaussian_std": 1.0 },
+                { "noise_ratio": 0.1, "gaussian_mean": 1.0, "gaussian_std": 1.5 },
+            ],
+            seed = args.seed
+        )
 
     if args.poisson_noise:
         print("\n--- Comparison between different Poisson noises ---")
         tracking_noise(
-                num_robots = 15,
-                num_targets = 3,
-                vars_dim = 2,
-                graph_form = "complete_graph",
-                alpha = 1e-2,
-                num_iters = 1000,
-                noise_type = "poisson",
-                noise_args_list = [
-                    { "noise_ratio": 0.1, "poisson_lambda": 0.0 },
-                    { "noise_ratio": 0.1, "poisson_lambda": 1.0 },
-                    { "noise_ratio": 0.1, "poisson_lambda": 4.0 },
-                    { "noise_ratio": 0.1, "poisson_lambda": 10.0 },
-                ],
-                seed = args.seed
-            )
+            num_robots = 15,
+            num_targets = 1,
+            vars_dim = 2,
+            graph_form = "complete_graph",
+            alpha = 1e-2,
+            num_iters = 5000,
+            noise_type = "poisson",
+            noise_args_list = [
+                { "noise_ratio": 0.1, "poisson_lambda": 1.0 },
+                { "noise_ratio": 0.1, "poisson_lambda": 4.0 },
+                { "noise_ratio": 0.1, "poisson_lambda": 10.0 },
+            ],
+            seed = args.seed
+        )
         
     if args.noise_rates:
         print("\n--- Comparison between different noise rates ---")
         tracking_noise(
-                num_robots = 15,
-                num_targets = 3,
-                vars_dim = 2,
-                graph_form = "complete_graph",
-                alpha = 1e-2,
-                num_iters = 1000,
-                noise_type = "gaussian",
-                noise_args_list = [
-                    { "noise_ratio": 0.01, "gaussian_mean": 0.0, "gaussian_std": 1.0 },
-                    { "noise_ratio": 0.05, "gaussian_mean": 0.0, "gaussian_std": 1.0 },
-                    { "noise_ratio": 0.1, "gaussian_mean": 0.0, "gaussian_std": 1.0 },
-                    { "noise_ratio": 0.2, "gaussian_mean": 0.0, "gaussian_std": 1.0 },
-                    { "noise_ratio": 0.5, "gaussian_mean": 0.0, "gaussian_std": 1.0 },
-                ],
-                seed = args.seed
-            )
+            num_robots = 15,
+            num_targets = 1,
+            vars_dim = 2,
+            graph_form = "complete_graph",
+            alpha = 1e-2,
+            num_iters = 5000,
+            noise_type = "gaussian",
+            noise_args_list = [
+                { "noise_ratio": 0.01, "gaussian_mean": 0.0, "gaussian_std": 1.0 },
+                { "noise_ratio": 0.05, "gaussian_mean": 0.0, "gaussian_std": 1.0 },
+                { "noise_ratio": 0.1, "gaussian_mean": 0.0, "gaussian_std": 1.0 },
+                { "noise_ratio": 0.2, "gaussian_mean": 0.0, "gaussian_std": 1.0 },
+                { "noise_ratio": 0.5, "gaussian_mean": 0.0, "gaussian_std": 1.0 },
+            ],
+            seed = args.seed
+        )
 
-    if arg.noise_cancel:
+    if args.noise_cancel:
         print("\n--- Testing asymptotic behavior of noise ---")
         tracking_noise_cancel(
             num_robots_list = [5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
@@ -471,10 +470,10 @@ if __name__ == "__main__":
             vars_dim = 2,
             graph_form = "complete_graph",
             alpha = 1e-2,
-            num_iters = 1000,
+            num_iters = 5000,
             noise_args = { 
                 "noise_type": "gaussian",
-                "noise_ratio": 0.01, 
+                "noise_ratio": 0.05, 
                 "gaussian_mean": 0.0, 
                 "gaussian_std": 1.0 
             },

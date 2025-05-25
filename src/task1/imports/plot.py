@@ -104,7 +104,7 @@ def plot_animation(
         plt.ylim(ylim_min, ylim_max)
 
     if ff_threshold is not None:
-        frames = [*range(0, ff_threshold, sample_size)] + [*range(ff_threshold, len(history_estimates), 10*sample_size)]
+        frames = [*range(0, ff_threshold, 1)] + [*range(ff_threshold, len(history_estimates), sample_size)]
     else:
         frames = range(0, len(history_estimates), sample_size)
 

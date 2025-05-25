@@ -176,7 +176,6 @@ if __name__ == "__main__":
     parser.add_argument("--few-agents-high-dim", action="store_true", default=False)
     parser.add_argument("--many-agents-low-dim", action="store_true", default=False)
     parser.add_argument("--many-agents-high-dim", action="store_true", default=False)
-    parser.add_argument("--convergence", action="store_true", default=False)
     parser.add_argument("--centralized-small", action="store_true", default=False)
     parser.add_argument("--centralized-large", action="store_true", default=False)
     parser.add_argument("--seed", type=int, default=42, help="Initialization seed")
@@ -188,8 +187,8 @@ if __name__ == "__main__":
             num_agents = 5,
             vars_dim = 3,
             graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
-            alpha = 1e-1,
-            num_iters = 100,
+            alpha = 5e-2,
+            num_iters = 5000,
             seed = args.seed
         )
 
@@ -199,8 +198,8 @@ if __name__ == "__main__":
             num_agents = 5,
             vars_dim = 15,
             graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
-            alpha = 1e-1,
-            num_iters = 100,
+            alpha = 5e-2,
+            num_iters = 5000,
             seed = args.seed
         )
 
@@ -210,8 +209,8 @@ if __name__ == "__main__":
             num_agents = 15,
             vars_dim = 3,
             graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
-            alpha = 1e-1,
-            num_iters = 100,
+            alpha = 5e-2,
+            num_iters = 5000,
             seed = args.seed
         )
 
@@ -221,19 +220,8 @@ if __name__ == "__main__":
             num_agents = 15,
             vars_dim = 15,
             graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
-            alpha = 1e-1,
-            num_iters = 100,
-            seed = args.seed
-        )
-
-    if args.convergence:
-        print("\n--- Comparison at convergence ---")
-        quadratic_comparison(
-            num_agents = 15,
-            vars_dim = 3,
-            graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
-            alpha = 1e-1,
-            num_iters = 1000,
+            alpha = 5e-2,
+            num_iters = 5000,
             seed = args.seed
         )
 
@@ -254,7 +242,7 @@ if __name__ == "__main__":
             num_agents = 15,
             vars_dim = 3,
             graph_form = "complete_graph",
-            alpha = 1e-1,
-            num_iters = 1000,
+            alpha = 5e-2,
+            num_iters = 5000,
             seed = args.seed
         )
