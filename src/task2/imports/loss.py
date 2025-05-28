@@ -22,6 +22,9 @@ class AggregativeLoss:
     def grad2(self, z_i, sigma):
         return -(z_i - sigma)
 
+    def tot_grad(self, z_i, sigma):
+        return self.grad1(z_i, sigma) + self.grad2(z_i, sigma)
+
 
 class Identity:
     def __call__(self, z):

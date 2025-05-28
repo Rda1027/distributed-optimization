@@ -18,8 +18,8 @@ def aggregative_optimization(
         Runs the gradient tracking algorithm
 
         Args:
-            fn_list (list[Loss]):
-                List of local loss functions.
+            agents (list[Agent]):
+                List of the agents.
             z0 (npt.NDArray):
                 Initial guess for each agent ([NUM_AGENTS x VARS_DIM]).
             A (npt.NDArray):
@@ -32,6 +32,9 @@ def aggregative_optimization(
         Returns:
             z_history (npt.NDArray):
                 Parameters estimated by each agent at each iteration ([num_iters+1 x NUM_AGENTS x VARS_DIM]).
+            sigma_history (npt.NDArray):
+                Aggregation function at each iteration ([num_iters+1 x NUM_AGENTS x VARS_DIM])
+
     """
     num_agents = z0.shape[0]
     vars_dim = z0.shape[1]
@@ -53,23 +56,23 @@ def aggregative_optimization(
             s[k+1, i] = sum(A[i, j] * s[k, j] for j in neighbors) + (agents[i].phi(z[k+1, i]) - agents[i].phi(z[k, i])) 
             v[k+1, i] = sum(A[i, j] * v[k, j] for j in neighbors) + (agents[i].loss.grad2(z[k+1, i], s[k+1, i]) - agents[i].loss.grad2(z[k, i], s[k, i])) 
 
-    return z
+    return z, s
 
 
-# def gradient_descent(
-#         fn_list: list[Loss], 
+# def centralized_aggregative(
+#         agents: list[Agent], 
 #         z0: npt.NDArray, 
 #         alpha: float, 
 #         num_iters: int
 #     ) -> npt.NDArray:
 #     """
-#         Runs the centralized gradient descent algorithm to minimize the summation of a list of loss functions.
+#         Runs the aggregative optimization algorithm where each agent has access to global information.
 
 #         Args:
-#             fn_list (list[Loss]):
-#                 List of loss functions for which the summation is minimized.
+#             agents (list[Agent]):
+#                 List of the agents.
 #             z0 (npt.NDArray):
-#                 Initial guess ([VARS_DIM]).
+#                 Initial guess ([NUM_AGENTS x VARS_DIM]).
 #             alpha (float):
 #                 Step size.
 #             num_iters (int):
@@ -77,15 +80,26 @@ def aggregative_optimization(
 
 #         Returns:
 #             z_history (npt.NDArray):
-#                 Parameters estimated at each iteration ([num_iters+1 x VARS_DIM]).
+#                 Parameters estimated at each iteration ([num_iters+1 x NUM_AGENTS x VARS_DIM]).
+#             sigma_history (npt.NDArray):
+#                 Aggregation function at each iteration ([num_iters+1 x NUM_AGENTS x VARS_DIM])
 #     """
-#     num_agents = len(fn_list)
-#     vars_dim = z0.shape[0]
-#     z = np.zeros((num_iters+1, vars_dim))
+#     num_agents = len(agents)
+#     vars_dim = z0.shape[1]
+#     z = np.zeros((num_iters+1, num_agents, vars_dim))
+#     s = np.zeros((num_iters+1, num_agents, vars_dim))
 #     z[0] = z0
+#     s[0] = (1/num_agents) * sum(agents[i].phi(z0[i]) for i in range(num_agents))
 
 #     for k in range(num_iters):
-#         grad = sum( fn_list[i].grad(z[k]) for i in range(num_agents) )
-#         z[k+1] = z[k] - alpha * grad
+#         sigma = (1/num_agents) * sum(agents[i].phi(z[k, i]) for i in range(num_agents))
+#         s[k+1] = sigma
 
-#     return z
+#         for i in range(num_agents):
+#             grad = (
+#                 agents[i].loss.grad1(z[k, i], sigma)
+#                 + sum(agents[j].loss.grad2(z[k, j], sigma) * (1/num_agents)*agents[i].phi(z[k, i]) for j in range(num_agents))
+#             )
+#             z[k+1, i] = z[k, i] - alpha * grad
+
+#     return z, s
