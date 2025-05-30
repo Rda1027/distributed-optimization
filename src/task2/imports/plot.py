@@ -30,6 +30,10 @@ def plot_scenario(
     """
     def __get_color(i):
         return matplotlib.colormaps["tab10"](i % 10)
+    
+    # Draw line between robots and targets
+    for i in range(len(robots_pos)):
+        plt.plot([robots_pos[i, 0], target_pos[i, 0]], [robots_pos[i, 1], target_pos[i, 1]], "--", alpha=0.5)
 
     # Plot robots
     for i in range(len(robots_pos)):

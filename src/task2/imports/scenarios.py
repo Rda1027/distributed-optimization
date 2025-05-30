@@ -1,6 +1,6 @@
 import numpy as np
 import networkx as nx
-# from imports.loss import Loss, QuadraticFunction, TargetLocalizationLoss
+from imports.loss import Agent
 
 from typing import Literal
 import numpy.typing as npt
@@ -67,3 +67,22 @@ def create_network_of_agents(
         adj_matrix[i, i] = 1 - (sum(adj_matrix[i]) - adj_matrix[i, i])
 
     return G, adj_matrix
+
+
+
+def create_aggregative_problem(
+        num_agents: int, 
+        vars_dim: int,
+        target_weight: float,
+        barycenter_weight: float,
+        agents_importance: list = None,
+        seed: int = 42
+    ):
+    rng = np.random.default_rng(seed)
+    if agents_importance is None:
+        agents_importance = [1.0] *  num_agents
+
+    targets_pos = rng.random(size=(num_agents, vars_dim))
+    agents = [Agent(targets_pos[i], agents_importance[i], target_weight, barycenter_weight) for i in range(num_agents)]
+
+    return agents, targets_pos
