@@ -475,9 +475,72 @@ From the experiments with different noises, we observed a worsening in performan
 \end{figure}
 
 
+\cleardoublepage
 \chapter{Aggregative Optimization for Multi-Robot Systems}
 
 
+\begin{figure}[tb!]
+      \centering
+      \begin{subfigure}[t]{0.46\linewidth}
+            \centering
+            \includegraphics[width=\linewidth]{./figs/aggregative/few_agents/loss.pdf} 
+            \caption{Loss evolution}
+      \end{subfigure}
+      \hfill
+      \begin{subfigure}[t]{0.46\linewidth}
+            \centering
+            \includegraphics[width=\linewidth]{./figs/aggregative/few_agents/gradient.pdf} 
+            \caption{Gradient norm evolution}
+      \end{subfigure}
+      \hfill
+      \begin{subfigure}[t]{\linewidth}
+            \centering
+            \includegraphics[width=\linewidth]{./figs/aggregative/plain_anim/anim.pdf} 
+            \caption{Animation frames. Dashed lines connect robots to the private targets and solid lines are the trajectories.}
+      \end{subfigure}
+      \caption{Positioning with $5$ robots}
+      \label{fig:positioning_5}
+\end{figure}
+
+
+\begin{figure}[tb!]
+      \centering
+      \begin{subfigure}[t]{0.46\linewidth}
+            \centering
+            \includegraphics[width=\linewidth]{./figs/aggregative/more_agents/loss.pdf} 
+            \caption{Loss evolution}
+      \end{subfigure}
+      \hfill
+      \begin{subfigure}[t]{0.46\linewidth}
+            \centering
+            \includegraphics[width=\linewidth]{./figs/aggregative/more_agents/gradient.pdf} 
+            \caption{Gradient norm evolution}
+      \end{subfigure}
+      \caption{Positioning with $15$ robots}
+      \label{fig:positioning_15}
+\end{figure}
+
+
+\begin{figure}[tb!]
+      \centering
+      \includegraphics[width=\linewidth]{./figs/aggregative/target_anim/anim.pdf} 
+      \caption{Frames with $5$ robots and loss that prioritizes the private targets. Dashed lines connect robots to the targets and solid lines are the trajectories.}
+      \label{fig:anim_target}
+\end{figure}
+
+\begin{figure}[tb!]
+      \centering
+      \includegraphics[width=\linewidth]{./figs/aggregative/barycenter_anim/anim.pdf} 
+      \caption{Frames with $5$ robots and loss that prioritizes the barycenter. Dashed lines connect robots to the targets and solid lines are the trajectories.}
+      \label{fig:anim_barycenter}
+\end{figure}
+
+\begin{figure}[tb!]
+      \centering
+      \includegraphics[width=\linewidth]{./figs/aggregative/importance_anim/anim.pdf} 
+      \caption{Frames with $5$ robots and barycenter that prioritizes robot $0$. Dashed lines connect robots to the targets and solid lines are the trajectories.}
+      \label{fig:anim_importance}
+\end{figure}
 
 
 

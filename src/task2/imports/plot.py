@@ -11,7 +11,10 @@ import numpy.typing as npt
 def plot_scenario(
         agents,
         robots_pos: npt.NDArray, 
-        target_pos: npt.NDArray
+        target_pos: npt.NDArray,
+        draw_line_to_target = True,
+        past_positions = None,
+        show_legend = True
     ):
     """
         Plots an istance of the position tracking problem.
@@ -31,9 +34,15 @@ def plot_scenario(
     def __get_color(i):
         return matplotlib.colormaps["tab10"](i % 10)
     
-    # Draw line between robots and targets
-    for i in range(len(robots_pos)):
-        plt.plot([robots_pos[i, 0], target_pos[i, 0]], [robots_pos[i, 1], target_pos[i, 1]], "--", alpha=0.5)
+    if draw_line_to_target:
+        # Draw line between robots and targets
+        for i in range(len(robots_pos)):
+            plt.plot([robots_pos[i, 0], target_pos[i, 0]], [robots_pos[i, 1], target_pos[i, 1]], "--", color=__get_color(i), alpha=0.5)
+
+    if past_positions is not None:
+        # Draw trajectory
+        for i in range(len(robots_pos)):
+            plt.plot(past_positions[:, i, 0], past_positions[:, i, 1], color=__get_color(i), alpha=0.5)
 
     # Plot robots
     for i in range(len(robots_pos)):
@@ -41,13 +50,15 @@ def plot_scenario(
 
     # Plot targets
     for i in range(len(target_pos)):
-        plt.plot(target_pos[i, 0], target_pos[i, 1], "X", color=__get_color(i), label=f"Target-{i}")
+        plt.plot(target_pos[i, 0], target_pos[i, 1], "x", color=__get_color(i), label=f"Target-{i}")
 
+    # Plot barycenter
     barycenter = np.mean([ agents[i].phi(robots_pos[i]) for i in range(len(agents)) ], axis=0)
-    plt.plot(barycenter[0], barycenter[1], "^")
+    plt.plot(barycenter[0], barycenter[1], "^", label="Barycenter", color="black")
 
     plt.axis("scaled")
-    plt.legend(bbox_to_anchor=(1, 1))
+    if show_legend:
+        plt.legend(bbox_to_anchor=(1, 1))
 
 
 
@@ -84,7 +95,7 @@ def plot_animation(
 
     def __update(k):
         plt.clf()
-        plot_scenario(agents, history_estimates[k], targets_pos)
+        plot_scenario(agents, history_estimates[k], targets_pos, past_positions=history_estimates[:k])
         plt.title(f"k={k}")
         plt.xlim(xlim_min, xlim_max)
         plt.ylim(ylim_min, ylim_max)
