@@ -475,9 +475,37 @@ From the experiments with different noises, we observed a worsening in performan
 \end{figure}
 
 
+
+
 \cleardoublepage
 \chapter{Aggregative Optimization for Multi-Robot Systems}
 
+
+\section{Problem formulation}
+
+Given $N$ agents with positions $\z_i$ and each associated to a private target $\r_i$, we want to solve the problem of positioning the agents close to its own target while staying close to the rest of the agents.
+
+We solve this optimization problem using the following loss:
+\[
+      l_i(\z_i, \sigma(\z)) = \gamma_1 \frac{1}{2} \Vert \z_i - \r_i \Vert^2 + \gamma_2 \frac{1}{2} \Vert \z_i - \sigma(\z) \Vert^2
+\]
+where $\gamma_1$ weighs the importance of being close to the targets and $\gamma_2$ weighs the importance of being tight to the fleet.
+
+In order to compute the global aggregation function $\sigma(\z)$, each agent contributes to the barycenter as the expression of the linear function $\phi_i$:
+\[
+      \phi_i(\z_i) = \alpha_i \z_i 
+      \qquad 
+      \sigma(\z) = \frac{1}{N} \sum_{i}^{N} \phi_i(\z_i)
+\]
+With $\alpha_i = 1 \forall i$ we obtain the standard formulation of the problem in which $\sigma(\z)$ represents the barycenter of the fleet. With different $\alpha_i$ (with $\sum_i^N \alpha_i = N$), we obtain a $\sigma(\z)$ that is a weighted average and can be interpreted as a barycenter that is based towards specified agents.
+
+\section{Comparison with different graph patterns}
+
+As in the previous task, we first experiment this setup with different graph patterns and different number of agents.
+
+From the plots in \Cref{fig:positioning_5}, we can observe an identical trend in terms of loss and gradient for every graph pattern we have experimented with. In all cases, we can observe that the algorithm converges, and also, visually, we can see that the final positions of the agents tends to reach an expected behavior.
+
+By adding more agents, we cannot detect any relevant changes in behavior as they all reach convergence in the same way as in the previous experiment. The only thing we can underline is that the trend for the path graph has a little variation at convergence, most likely due to numerical instability.
 
 \begin{figure}[tb!]
       \centering
@@ -502,7 +530,6 @@ From the experiments with different noises, we observed a worsening in performan
       \label{fig:positioning_5}
 \end{figure}
 
-
 \begin{figure}[tb!]
       \centering
       \begin{subfigure}[t]{0.46\linewidth}
@@ -520,6 +547,11 @@ From the experiments with different noises, we observed a worsening in performan
       \label{fig:positioning_15}
 \end{figure}
 
+
+
+\section{Comparison with different loss configurations}
+
+In terms of different loss functions, we experiment our formulation with different weights to prioritize target vicinity (higher $\gamma_1$), barycenter vicinity (higher $\gamma_2$), and different agents' importance (different $\alpha_i$). Results are presented in \Cref{fig:anim_target}, \Cref{fig:anim_barycenter}, and \Cref{fig:anim_importance}, respectively. In all cases the positions at convergence are intuitively the expected ones, showing that the algorithm allows many degrees of freedom.
 
 \begin{figure}[tb!]
       \centering
