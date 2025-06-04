@@ -58,7 +58,7 @@ def aggregative_optimization(
         num_iters: int
     ) -> npt.NDArray:
     """
-        Runs the gradient tracking algorithm
+        Runs the aggregative optimization algorithm
 
         Args:
             agents (list[Agent]):
@@ -104,4 +104,4 @@ def aggregative_optimization(
                 v_neighbors = v[k, neighbors]
             )
 
-    return z, s
+    return z, s, v

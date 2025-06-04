@@ -8,6 +8,32 @@ import numpy.typing as npt
 
 
 
+def plot_loss(agents, history_z, history_sigma, label):
+    """
+        Plots the loss function
+    """
+    plt.plot([ sum(agents[i].loss(z[i], s[i]) for i in range(len(agents))) for z, s in zip(history_z, history_sigma) ], label=label)
+    plt.yscale("log")
+
+
+def plot_gradient(agents, history_z, history_sigma, history_v, label):
+    """
+        Plots the norm of the gradient of the loss
+    """
+    plt.plot(
+        [ 
+            np.linalg.norm( 
+                np.sum(
+                    [ agents[i].loss.grad1(z[i], s[i]) + v[i] * agents[i].phi.grad(z[i]) for i in range(len(agents)) ], 
+                    axis=0
+                )
+            ) for z, s, v in zip(history_z, history_sigma, history_v) 
+        ], 
+        label = label
+    )
+    plt.yscale("log")
+
+
 def plot_scenario(
         agents,
         robots_pos: npt.NDArray, 

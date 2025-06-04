@@ -5,31 +5,13 @@ import networkx as nx
 
 from imports.algorithm import aggregative_optimization
 from imports.scenarios import create_network_of_agents, create_aggregative_problem
-from imports.plot import plot_animation
+from imports.plot import plot_animation, plot_loss, plot_gradient
 
 plt.rcParams["font.family"] = "cmr10"
 plt.rcParams["mathtext.fontset"] = "cm"
 plt.rcParams["axes.formatter.use_mathtext"] = True
 plt.rcParams["font.size"] = 12
 plt.rcParams["legend.fontsize"] = 12
-
-
-
-def plot_loss(agents, history_z, history_sigma, label):
-    """
-        Plots the loss function
-    """
-    plt.plot([ sum(agents[i].loss(z[i], s[i]) for i in range(len(agents))) for z, s in zip(history_z, history_sigma) ], label=label)
-    plt.yscale("log")
-
-
-def plot_gradient(agents, history_z, history_sigma, label):
-    """
-        Plots the norm of the gradient of the loss
-    """
-    plt.plot([ np.linalg.norm( np.sum([agents[i].loss.tot_grad(z[i], s[i]) for i in range(len(agents))], axis=0) ) for z, s in zip(history_z, history_sigma) ], label=label)
-    plt.yscale("log")
-
 
 
 def aggregative_animate(num_agents, target_weight, barycenter_weight, graph_form, alpha, num_iters, agents_importance, seed):
@@ -45,7 +27,7 @@ def aggregative_animate(num_agents, target_weight, barycenter_weight, graph_form
     z0 = rng.random(size=(num_agents, vars_dim))
 
     # Solve problem
-    history_z, history_sigma = aggregative_optimization(
+    history_z, history_sigma, history_v = aggregative_optimization(
         agents = agents,
         z0 = z0.copy(),
         A = A,
@@ -69,6 +51,7 @@ def aggregative_comparison(num_agents, vars_dim, graph_forms, alpha, num_iters, 
     network_seed = int(rng.integers(0, 2**32))
     history_z = {}
     history_sigma = {}
+    history_v = {}
     
     # Define the same problem for all graph patterns
     agents, targets_pos = create_aggregative_problem(num_agents, vars_dim, 1.0, 1.0, None, int(rng.integers(0, 2**32)))
@@ -77,7 +60,7 @@ def aggregative_comparison(num_agents, vars_dim, graph_forms, alpha, num_iters, 
     # Solve for all graph patterns.
     for graph_form in graph_forms:
         G, A = create_network_of_agents(num_agents, graph_form, seed=network_seed)
-        history_z[graph_form], history_sigma[graph_form] = aggregative_optimization(agents, z0.copy(), A, alpha, num_iters)
+        history_z[graph_form], history_sigma[graph_form], history_v[graph_form] = aggregative_optimization(agents, z0.copy(), A, alpha, num_iters)
 
     # Present results
     for graph_form in graph_forms:
@@ -98,7 +81,7 @@ def aggregative_comparison(num_agents, vars_dim, graph_forms, alpha, num_iters, 
     plt.subplot(1, 2, 2)
     plt.title("Norm of loss gradient")
     for graph_form in graph_forms:
-        plot_gradient(agents, history_z[graph_form], history_sigma[graph_form], f"{graph_form.replace('_', '-')}")
+        plot_gradient(agents, history_z[graph_form], history_sigma[graph_form], history_v[graph_form], f"{graph_form.replace('_', '-')}")
     plt.xlabel("$k$")
     plt.ylabel("$\\left\\Vert \\nabla l(z^k) \\right\\Vert_2$ (log)")
     plt.legend()
