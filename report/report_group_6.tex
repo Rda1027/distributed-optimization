@@ -487,7 +487,11 @@ Given $N$ agents with positions $\z_i$ and each associated to a private target $
 
 We solve this optimization problem using the following loss:
 \[
-      l_i(\z_i, \sigma(\z)) = \gamma_1 \frac{1}{2} \Vert \z_i - \r_i \Vert^2 + \gamma_2 \frac{1}{2} \Vert \z_i - \sigma(\z) \Vert^2
+      \begin{split}
+            l_i(\z_i, \sigma(\z)) &= \gamma_1 \frac{1}{2} \Vert \z_i - \r_i \Vert^2 + \gamma_2 \frac{1}{2} \Vert \z_i - \sigma(\z) \Vert^2 \\
+            \nabla_1 l_i(\z_i, \sigma(\z)) &= \gamma_1 (\z_i - \r_i) + \gamma_2 (\z_i - \sigma(\z)) \\
+            \nabla_2 l_i(\z_i, \sigma(\z)) &= -\gamma_2 (\z_i - \sigma(\z))
+      \end{split}
 \]
 where $\gamma_1$ weighs the importance of being close to the targets and $\gamma_2$ weighs the importance of being tight to the fleet.
 
@@ -497,7 +501,7 @@ In order to compute the global aggregation function $\sigma(\z)$, each agent con
       \qquad 
       \sigma(\z) = \frac{1}{N} \sum_{i}^{N} \phi_i(\z_i)
 \]
-With $\alpha_i = 1 \forall i$ we obtain the standard formulation of the problem in which $\sigma(\z)$ represents the barycenter of the fleet. With different $\alpha_i$ (with $\sum_i^N \alpha_i = N$), we obtain a $\sigma(\z)$ that is a weighted average and can be interpreted as a barycenter that is based towards specified agents.
+With $\alpha_i = 1$ for all $i$, we obtain the standard formulation of the problem in which $\sigma(\z)$ represents the barycenter of the fleet. With different $\alpha_i$ (with $\sum_i^N \alpha_i = N$), we obtain a $\sigma(\z)$ that is a weighted average and can be interpreted as a barycenter that is biased towards specified agents.
 
 \section{Comparison with different graph patterns}
 
