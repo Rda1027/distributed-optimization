@@ -6,37 +6,16 @@ import networkx as nx
 from imports.algorithm import gradient_tracking, gradient_descent
 from imports.loss import QuadraticFunction, TargetLocalizationLoss
 from imports.scenarios import create_network_of_agents, create_quadratic_problem, create_position_tracking_problem
-from imports.plot import plot_scenario, plot_animation
 from imports.utils import get_average_estimate_error, get_average_consensus_error
+from imports.plot import plot_scenario, plot_animation, \
+    plot_loss_tracking as plot_loss, \
+    plot_gradient_tracking as plot_gradient
 
 plt.rcParams["font.family"] = "cmr10"
 plt.rcParams["mathtext.fontset"] = "cm"
 plt.rcParams["axes.formatter.use_mathtext"] = True
 plt.rcParams["font.size"] = 12
 plt.rcParams["legend.fontsize"] = 12
-
-
-
-def plot_loss(loss_fn, history_z, label):
-    """
-        Plots the loss function, handling both centralized and distributed cases.
-    """
-    if history_z.ndim == 3: # Centralized case
-        plt.plot([ loss_fn(z) for z in history_z ], label=label)
-    elif history_z.ndim == 4: # Distributed case
-        plt.plot([ sum(loss_fn[i](z[i]) for i in range(len(z))) for z in history_z ], label=label)
-    plt.yscale("log")
-
-
-def plot_gradient(loss_fn, history_z, label):
-    """
-        Plots the norm of the gradient of the loss, handling both centralized and distributed cases.
-    """
-    if history_z.ndim == 3: # Centralized case
-        plt.plot([ np.linalg.norm( loss_fn.grad(z) ) for z in history_z ], label=label)
-    elif history_z.ndim == 4: # Distributed case
-        plt.plot([ np.linalg.norm( np.sum([loss_fn[i].grad(z[i]) for i in range(len(z))], axis=0) ) for z in history_z ], label=label)
-    plt.yscale("log")
 
 
 
