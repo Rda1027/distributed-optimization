@@ -1,11 +1,15 @@
+import os
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
+import csv
+import json
 
 from imports.algorithm import aggregative_optimization
 from imports.scenarios import create_network_of_agents, create_aggregative_problem
 from imports.plot import plot_animation, plot_loss, plot_gradient
+from imports.loss import Agent
 
 plt.rcParams["font.family"] = "cmr10"
 plt.rcParams["mathtext.fontset"] = "cm"
@@ -90,7 +94,58 @@ def aggregative_comparison(num_agents, vars_dim, graph_forms, alpha, num_iters, 
     plt.show()
 
 
+def plot_ros2_logs(logs_dir):
+    agents = []
+    history_z = []
+    history_sigma = []
+    history_v = []
 
+    for agent_dir in os.listdir(logs_dir):
+        with open(os.path.join(logs_dir, agent_dir, "metadata.json"), "r") as f:
+            metadata = json.load(f)
+            agents.append( 
+                Agent(
+                    np.array(metadata["target_pos"]),
+                    metadata["agent_importance"],
+                    metadata["loss_target_weight"],
+                    metadata["loss_barycenter_weight"]
+                ) 
+            )
+
+        history_z.append( [] )
+        history_sigma.append( [] )
+        history_v.append( [] )
+        with open(os.path.join(logs_dir, agent_dir, "history.csv"), "r") as f:
+            for line in csv.reader(f, delimiter=";"):
+                history_z[-1].append([float(s) for s in line[1:3]])
+                history_sigma[-1].append([float(s) for s in line[3:5]])
+                history_v[-1].append([float(s) for s in line[5:7]])
+    
+    history_z = np.array(history_z).transpose(1, 0, 2)
+    history_sigma = np.array(history_sigma).transpose(1, 0, 2)
+    history_v = np.array(history_v).transpose(1, 0, 2)
+
+
+    plt.figure(figsize=(16, 8))
+
+    plt.subplot(1, 2, 1)
+    plt.title("Loss")
+    plot_loss(agents, history_z, history_sigma, "ROS2")
+    plt.xlabel("$k$")
+    plt.ylabel("$l(z^k)$ (log)")
+    plt.legend()
+
+    plt.subplot(1, 2, 2)
+    plt.title("Norm of loss gradient")
+    plot_gradient(agents, history_z, history_sigma, history_v, "ROS2")
+    plt.xlabel("$k$")
+    plt.ylabel("$\\left\\Vert \\nabla l(z^k) \\right\\Vert_2$ (log)")
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
+
+    
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="Model training")
     parser.add_argument("--animation", action="store_true", default=False)
@@ -99,6 +154,7 @@ if __name__ == "__main__":
     parser.add_argument("--animation-importance", action="store_true", default=False)
     parser.add_argument("--few-agents", action="store_true", default=False)
     parser.add_argument("--more-agents", action="store_true", default=False)
+    parser.add_argument("--ros2", action="store_true", default=False)
     parser.add_argument("--seed", type=int, default=42, help="Initialization seed")
     args = parser.parse_args()
 
@@ -175,3 +231,7 @@ if __name__ == "__main__":
             num_iters = 5000,
             seed = args.seed
         )
+
+    if args.ros2:
+        print("--- Plotting ROS2 logs ---")
+        plot_ros2_logs("./ros2-logs")

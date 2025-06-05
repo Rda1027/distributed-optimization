@@ -2,6 +2,7 @@ import os
 import sys
 import numpy as np
 from time import sleep
+import json
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float64MultiArray as MsgFloat
@@ -28,6 +29,9 @@ class Agent(Node):
         self.alpha              = self.get_parameter("alpha").value
         self.neighbors          = self.get_parameter("neighbors").value
         self.neighbors_weights  = np.array(self.get_parameter("neighbors_weights").value)
+        self.logs_dir           = os.path.join(self.get_parameter("logs_path").value, f"agent{self.id}")
+        self.logs_csv           = os.path.join(self.logs_dir, f"history.csv")
+        self.logs_metadata      = os.path.join(self.logs_dir, f"metadata.json")
         # Loss parameters
         target_pos              = np.array(self.get_parameter("target_pos").value)
         loss_target_weight      = self.get_parameter("loss_target_weight").value
@@ -52,6 +56,17 @@ class Agent(Node):
         # Communication polling
         self.timer = self.create_timer(communication_time, self.__communication_callback)
 
+        # Create logs files
+        os.makedirs(self.logs_dir, exist_ok=True)
+        open(self.logs_csv, "w").close()
+        with open(self.logs_metadata, "w") as f:
+            json.dump({
+                "target_pos": target_pos.tolist(),
+                "loss_target_weight": loss_target_weight,
+                "loss_barycenter_weight": loss_barycenter_weight,
+                "agent_importance": agent_importance
+            }, f)
+
         print(f"I am agent: {self.id:d}")
 
 
@@ -59,6 +74,17 @@ class Agent(Node):
         self.publisher.publish(
             format_message(self.id, self.curr_k, self.curr_sigma, self.curr_grad2, self.curr_z)
         )
+
+
+    def __log_state(self):
+        with open(self.logs_csv, "a") as f:
+            f.write(
+                f"{self.curr_k};"
+                f"{';'.join([str(z) for z in self.curr_z])};"
+                f"{';'.join([str(s) for s in self.curr_sigma])};"
+                f"{';'.join([str(v) for v in self.curr_grad2])};"
+                "\n"
+            )
 
 
     def __neighbors_topic_callback(self, msg_raw):
@@ -81,6 +107,7 @@ class Agent(Node):
     def __communication_callback(self):
         if self.curr_k == 0:
             self.__send_state()
+            self.__log_state()
             self.curr_k += 1
         elif self.__has_received_from_all_neighbors(self.curr_k-1):
             self.curr_z, self.curr_sigma, self.curr_grad2 = aggregative_step(
@@ -94,6 +121,7 @@ class Agent(Node):
                 s_neighbors = [ self.received_queue[i][0]["sigma_est"] for i in self.neighbors ],
                 v_neighbors = [ self.received_queue[i][0]["grad2_est"] for i in self.neighbors ],
             )
+            self.__log_state()
 
             for i in self.neighbors:
                 self.received_queue[i].pop(0)
@@ -109,7 +137,7 @@ def main():
     rclpy.init()
 
     agent = Agent()
-    sleep(1) # For synchronization
+    sleep(2) # For synchronization
     try:
         rclpy.spin(agent)
     except KeyboardInterrupt:

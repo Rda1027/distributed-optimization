@@ -19,10 +19,12 @@ LOSS_TARGET_WEIGHT = 1.0
 LOSS_BARYCENTER_WEIGHT = 1.0
 AGENTS_IMPORTANCE = [1.0] * NUM_AGENTS
 
-MAX_ITERS = 500
+MAX_ITERS = 5000
 ALPHA = 1e-2
 
-COMMUNICATION_TIME = 1e-1
+COMMUNICATION_TIME = 1e-2
+
+LOGS_DIR = os.path.join(os.path.dirname(__file__), "../../../../../ros2-logs")
 
 SEED = 42    
 rng = np.random.default_rng(SEED)
@@ -33,6 +35,7 @@ def generate_launch_description():
     G, A = create_network_of_agents(NUM_AGENTS, GRAPH_PATTERN, seed=int(rng.integers(0, 2**32)))
     targets_pos = rng.random(size=(NUM_AGENTS, VARS_DIM)) * 10
     z0 = rng.random(size=(NUM_AGENTS, VARS_DIM)) * 10
+    os.makedirs(LOGS_DIR, exist_ok=True)
 
     to_launch_nodes = []
 
@@ -57,6 +60,7 @@ def generate_launch_description():
                     "loss_target_weight": LOSS_TARGET_WEIGHT,
                     "loss_barycenter_weight": LOSS_BARYCENTER_WEIGHT,
                     "agent_importance": AGENTS_IMPORTANCE[i],
+                    "logs_path": LOGS_DIR
                 }],
                 # output = "screen",
                 # prefix = f"xterm -title 'agent_{i}' -hold -e",
