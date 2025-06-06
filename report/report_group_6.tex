@@ -125,6 +125,17 @@ The first part of the task consists of implementing the gradient tracking algori
 \]
 where $\z \in \R^{d}$, $\Q \in \R^{d \times d}$ is positive definite, and $\r \in \R^{d}$.
 
+\section{Code structure}
+The code provided is structured with the following main modules:
+\begin{description}
+      \item[algorithm.py] Two functions, allowing to run the distributed gradient tracking algorithm and its centralized version.
+      \item[loss.py] Class definition of the quadratic loss function.
+      \item[plot.py] All the functions used to plot the loss, gradient norm and  distance to optimum evolution over iterations.
+      \item[scenarios.py] Two functions, one aiming to create the graph $G$ and the relative adjacency matrix $A$, while the other designed to initialize the parameters and the quadratic loss functions.
+      \item[utils.py] The definition of the functions for computing the average estimate error for each agent with respect to its ground truth, and the average consensus error meaning the average distance of each agent estimate with the consensus. 
+\end{description}
+In practice all the experiments can be executed from the script \texttt{main\_quadratic.py}.
+
 
 \section{Experiments}
 
@@ -317,6 +328,14 @@ The local loss each robot $i$ uses is the following:
 \]
 where $\z = (\z_{\tau_1}, \dots, \z_{\tau_{N_T}}) \in \R^{2N_T}$ is the stack of decision variables of robot $i$ containing the estimated positions of the targets $\z_{\tau} \in \R^2$ and $\nabla l_i(\z) \in \R^{2N_T}$ is the concatenation of the gradients computed with respect to each target.
 
+\section{Code structure}
+The code provided is structured with the following main modules (considering only the ones which have differences with the previous case):
+\begin{description}
+      \item[loss.py] Class definition of the target localization loss function.
+      \item[plot.py] All the functions used to plot the loss, gradient norm evolution over iterations.
+      \item[scenarios.py] Two functions, one aiming to create the graph $G$ and the relative adjacency matrix $A$, while the other is designed to initialize the parameters (e.g., the ground truth target positions, initial robot positions, and noisy estimated target distances) and the target localization loss functions.
+\end{description}
+In practice all the experiments can be executed from the script \texttt{main\_tracking.py}.
 
 \section{Experiments}
 
@@ -543,7 +562,16 @@ In terms of aggregation function $\sigma(\z)$, the local function $\phi_i$ assoc
 \]
 where $\alpha_i \in R$ is a hyperparameter. With $\alpha_i = 1$ for all $i$, we obtain the standard formulation of the problem in which $\sigma(\z)$ represents the barycenter of the fleet. With different $\alpha_i$ (with $\sum_i^N \alpha_i = N$), we obtain a $\sigma(\z)$ that is a weighted average and can be interpreted as a barycenter that is biased towards specified agents.
 
-
+\section{Code structure}
+The code provided is structured with the following main modules:
+\begin{description}
+      \item[algorithm.py] Function implementing the aggregative optimization algorithm.
+      \item[loss.py] Class definition of the Agent and its private functions, nominally the aggregative loss and the linear function needed to compute the barycenter.
+      \item[plot.py] All the functions used to plot the loss, gradient norm evolution over iterations, but also an animation of the system and its single frames.
+      \item[scenarios.py] Two functions, one aiming to create the graph $G$ and the relative adjacency matrix $A$, while the other designed to initialize the parameters for the problem (e.g., targets' positions and list of Agents).
+\end{description}
+TO DO: ROS2
+In practice all the experiments can be executed from the script \texttt{main\_tracking.py}.
 
 \section{Experiments}
 
@@ -634,8 +662,13 @@ Then, we continue the experiments by checking the results in terms of different 
 \addcontentsline{toc}{chapter}{Conclusions} 
 
 Both problems required for the first task and the second one were supported by a set of experiments. Within this paragraph we will show a summary of the results achieved.
-Regarding the Multi-Robot Target Localization problem, we have performed a sequence of tests, which aim was to observe the variation of performance under different points of view. In particular, the loss and gradient norm evolution showed a nearly similar behavior for all kinds of graph patterns both when using quadratic functions and the problem-specific loss function.
-The same trends were evaluated over a varying number of agents and also dimensionality of the state variables. More specifically, we observed that increasing those parameters implied a greater number of iteration needed to reach convergence. 
+Regarding the Multi-Robot Target Localization problem, we have performed a sequence of tests, which aim was to observe the variation of performance under different points of view. In particular, the loss and gradient norm evolution were evaluated over a varying number of agents and also in terms of dimensionality of the state variables. This test showed a nearly similar behavior for all kinds of graph patterns when using quadratic functions, with the only exception of the path graph, which was not able to reach convergence with an higher number of agents. This observation is most likely due to the fact that connectivity between agents in this case is very much relevant and that consequently the complexity of quadratic functions increase as well, requiring a greater number of iterations.
+Instead, in the case of problem-specific loss function we were not able to denote relevant changes under the same circumstances. At most a faster convergence correlated to an higher number of agents.
+Another test was executed to show how the algorithm behaves under different noise distributions and intensities. The outcome showed a linear relation between the obtained loss and the different parameters used in the definition of the noise distribution (for example, when using a Gaussian noise distribution the following parameters were considered: noise ratio, mean and standard deviation).
+Regarding the Aggregative Optimization problem, we performed another sequence of tests to assess the change in behavior of the system and its performances. The first one aimed at observing how the loss and gradient norm evolution changed based on differents graph patterns. The outcome showed a nearly identical trend for all the configuration, independently of the increasing number of robots.
+But also a set of loss hyperparameters were included in order to explore different behaviors. More specifically, we defined three parameters: agents' importance, targets' weights and barycenter's weights. The first one associated to each agent a real and positive coefficient, which contributed in the computation of the barycenter assigning more relevance to a particular agent instead of the others.
+The second and the third one, simply injected more relevance to the target vicinity loss or to the barycenter vicinity loss by assigning an higher coeffincient to one or the other. 
+
 
 
 
