@@ -285,6 +285,7 @@ if __name__ == "__main__":
     parser.add_argument("--few-robots-1-target", action="store_true", default=False)
     parser.add_argument("--few-robots-many-targets", action="store_true", default=False)
     parser.add_argument("--many-robots-many-targets", action="store_true", default=False)
+    parser.add_argument("--lots-robots-many-targets", action="store_true", default=False)
     parser.add_argument("--centralized", action="store_true", default=False)
     parser.add_argument("--gaussian-noise", action="store_true", default=False)
     parser.add_argument("--poisson-noise", action="store_true", default=False)
@@ -350,6 +351,24 @@ if __name__ == "__main__":
         print("--- Comparison with many robots and many targets ---")
         tracking_comparison(
             num_robots = 15,
+            num_targets = 3,
+            vars_dim = 2,
+            graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
+            alpha = 1e-2,
+            num_iters = 10000,
+            noise_args = {
+                "noise_ratio": 0.05,
+                "noise_type": "gaussian",
+                "gaussian_mean": 0.0,
+                "gaussian_std": 1.0,
+            },
+            seed = args.seed
+        )
+
+    if args.lots_robots_many_targets:
+        print("--- Comparison with lots of robots and many targets ---")
+        tracking_comparison(
+            num_robots = 30,
             num_targets = 3,
             vars_dim = 2,
             graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],

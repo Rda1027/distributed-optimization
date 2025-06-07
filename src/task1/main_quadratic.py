@@ -147,6 +147,8 @@ if __name__ == "__main__":
     parser.add_argument("--few-agents-high-dim", action="store_true", default=False)
     parser.add_argument("--many-agents-low-dim", action="store_true", default=False)
     parser.add_argument("--many-agents-high-dim", action="store_true", default=False)
+    parser.add_argument("--lots-agents-low-dim", action="store_true", default=False)
+    parser.add_argument("--lots-agents-high-dim", action="store_true", default=False)
     parser.add_argument("--centralized-small", action="store_true", default=False)
     parser.add_argument("--centralized-large", action="store_true", default=False)
     parser.add_argument("--seed", type=int, default=42, help="Initialization seed")
@@ -189,6 +191,28 @@ if __name__ == "__main__":
         print("\n--- Comparison with many agents and high dimensionality ---")
         quadratic_comparison(
             num_agents = 15,
+            vars_dim = 15,
+            graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
+            alpha = 5e-2,
+            num_iters = 5000,
+            seed = args.seed
+        )
+
+    if args.lots_agents_low_dim:
+        print("\n--- Comparison with lots of agents and low dimensionality ---")
+        quadratic_comparison(
+            num_agents = 30,
+            vars_dim = 3,
+            graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
+            alpha = 5e-2,
+            num_iters = 5000,
+            seed = args.seed
+        )
+
+    if args.lots_agents_high_dim:
+        print("\n--- Comparison with lots of agents and high dimensionality ---")
+        quadratic_comparison(
+            num_agents = 30,
             vars_dim = 15,
             graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
             alpha = 5e-2,

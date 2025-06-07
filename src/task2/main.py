@@ -232,6 +232,17 @@ if __name__ == "__main__":
             seed = args.seed
         )
 
+    if args.lots_agents:
+        print("--- Comparison with lots of agents ---")
+        aggregative_comparison(
+            num_agents = 30,
+            vars_dim = 2,
+            graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
+            alpha = 1e-2,
+            num_iters = 5000,
+            seed = args.seed
+        )
+
     if args.ros2:
         print("--- Plotting ROS2 logs ---")
         plot_ros2_logs("./ros2-logs")
