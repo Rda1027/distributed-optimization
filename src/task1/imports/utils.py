@@ -42,12 +42,5 @@ def get_average_consensus_error(z: npt.NDArray) -> float:
             average_consensus_error (float):
                 Average consensus error.
     """
-    num_agents = len(z)
-    errors = []
     consensus = np.mean(z, axis=0)
-
-    for i in range(num_agents):
-        for j in range(i+1, num_agents):
-            errors.append( np.linalg.norm(z[i] - z[j], 2) )
-
     return np.mean([np.linalg.norm(z[i] - consensus, 2) for i in range(len(z))])
