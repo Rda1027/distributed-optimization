@@ -16,6 +16,7 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{cleveref}
 \usepackage{booktabs}
+\usepackage[inline]{enumitem}
 
 \begin{document}
 \pagestyle{myheadings}
@@ -79,7 +80,7 @@
 \vspace{15mm}
 \end{center}
 
-Targets localization and aggregative multi-robot positioning are tasks that can be tackled in a distributed fashion. In this project, we solve both of them and experiment with their capabilities: the former is implemented in Python while the latter both in Python and ROS2. The first task can be solved using the gradient tracking algorithm, while the second one as an aggregative optimization problem. For the tracking task, our experimental results showed that communication graph connectivity and number of agents have significant effects in reaching convergence. Also, higher amounts of noise negatively affects the final results. For the aggregative tasks, we observed that all graph patterns behave similarly, independently of the number of robots. Moreover, experiments with different loss hyperparameters showed that the movement of the agents is coherent with the weights assigned to the components of the loss function.
+Multi-robot target localization and multi-robot positioning are two tasks that can be tackled in a distributed fashion. In this project, we solve both of them and experiment with their capabilities: the former is implemented in Python while the latter both in Python and ROS2. The first task can be solved using the gradient tracking algorithm, while the second one as an aggregative optimization problem. For the tracking task, our experimental results show that communication graph connectivity and number of agents have significant effects in convergence speed and accuracy. For the aggregative task, we observed that all graph patterns behave similarly, independently of the number of robots. Moreover, experiments with different loss hyperparameters show that the constraints defined in the loss function can be easily tuned and the movement of the robots is coherent with the assigned weights.
 
 \tableofcontents \thispagestyle{empty}
 % \listoffigures\thispagestyle{empty}
@@ -90,7 +91,7 @@ Targets localization and aggregative multi-robot positioning are tasks that can 
 
 \section*{Motivations} 
 
-The project aims at solving and implementing distributed algorithms to solve two specific tasks. The first one, which can be solved using the gradient tracking algorithm, involves the problem of distributed target localization where some tracking robots want to estimate the position of some targets for which only noisy measurements are known. The second one, which is an aggregative optimization problem, consists of positioning robots balancing the requirements of being close to private targets while keeping the whole fleet tight. For both tasks, we experiment the resulting implementation to assess their results in terms of correctness, convergence, and scalability.
+The project aims at implementing distributed algorithms to solve two specific tasks. The first one, which can be solved using the gradient tracking algorithm, involves the problem of distributed target localization where some tracking robots want to estimate the position of some targets for which only noisy measurements are known. The second one, which is an aggregative optimization problem, consists of positioning robots balancing the requirements of being close to private targets and keeping the whole fleet tight. For both tasks, we experiment with the implementation to assess their results in terms of correctness, convergence, and scalability.
 
 The rest of the report is structured as follows: in \Cref{ch:quadratic}, we implement the gradient tracking algorithm for quadratic functions. In \Cref{ch:localization}, we solve and show the results for the task of target localization. In \Cref{ch:aggregative}, we present the solution and the experiments for the task of robots positioning.
 
@@ -112,67 +113,86 @@ In practical terms, most of the work has been done in pair programming and both 
 
 \section{Problem definition}
 
-The first task aim is to solve a multi-robot target localization problem. Indeed, we consider a fleet of $N \in \N$ agents and a collection of $N_T \in \N$, in which each agent makes noisy measurements of its distance from every target. The objective is to design a distributed algorithm, in order to minimize the loss between every target estimated position and its ground truth (as formulated below), with a particular focus on trying to reach a consensus within the fleet.
+% The goal of the first task is to solve a multi-robot target localization problem. We consider a fleet of $N \in \N$ agents and a collection of $N_T \in \N$ targets, in which each agent makes noisy measurements of its distance from every target. The objective is to design a distributed algorithm, in order to minimize the loss between every target estimated position and its ground truth (as formulated below), with a particular focus on trying to reach a consensus within the fleet.
+% \[
+%       \min_{\z \in \R^{d}} \sum_{i=1}^{N} l_i(\z)
+% \]
 
-\[
-      \min_{\z \in \R^{d}} \sum_{i=1}^{N} l_i(\z)
-\]
 
-
-The first part of the task consists of implementing the gradient tracking algorithm generalized in $\R^d$ and then experiment with the implementation using quadratic functions, which we define in the usual way as:
+The first part of the first task consists of implementing the gradient tracking algorithm generalized in $\R^d$ and experimenting with the implementation using quadratic functions, which we define in the usual way as:
 \[
       f(\z) = \frac{1}{2} \z^T \Q \z + \r^T \z
       \quad
       \nabla f(\z) = \Q \z + \r
 \]
-where $\z \in \R^{d}$, $\Q \in \R^{d \times d}$ is positive definite, and $\r \in \R^{d}$.
+where $\z \in \R^{d}$ are the parameters, and $\Q \in \R^{d \times d}$ (positive definite) and $\r \in \R^{d}$ are the coefficients of the function. More in details, given $N \in \N$ agents where each has associated a private quadratic function $f_i$ with its own coefficients $\Q_i$ and $\r_i$, the goal is to use the gradient tracking algorithm to solve the following problem:
+\[
+      \min_{\z=(\z_1, \dots, \z_N)} \sum_{i=1}^{N} f_i(\z_i)
+\]
+where $\z$ is the stack of estimates of the agents.
 
-\section{Code structure}
-The code provided is structured with the following main modules:
+\section{Code structure} \label{sec:code_quadratic}
+The code provided is structured with the following modules:
 \begin{description}
-      \item[\texttt{algorithm.py}] Two functions, allowing to run the distributed gradient tracking algorithm and its centralized version.
-      \item[\texttt{loss.py}] Class definition of the quadratic loss function.
-      \item[\texttt{plot.py}] All the functions used to plot the loss, gradient norm and  distance to optimum evolution over iterations.
-      \item[\texttt{scenarios.py}] Two functions, one aiming to create the graph $G$ and the relative adjacency matrix $A$, while the other designed to initialize the parameters and the quadratic loss functions.
-      \item[\texttt{utils.py}] The definition of the functions for computing the average estimate error for each agent with respect to its ground truth, and the average consensus error meaning the average distance of each agent estimate with the consensus. 
+      \item[\texttt{algorithm.py}] contains the functions to run the distributed gradient tracking algorithm and the centralized gradient descent.
+      \item[\texttt{loss.py}] defines the quadratic function implemented as a Python class.
+      \item[\texttt{plot.py}] provides all the functions used to plot the cost, the gradient norm, and the distance to the optimum.
+      \item[\texttt{scenarios.py}] with the functions to create the communication graph and to initialize the problem of minimizing quadratic functions.
+      \item[\texttt{utils.py}] implements the utility metric to compute the average consensus error.
 \end{description}
-In practice all the experiments can be executed from the script \texttt{main\_quadratic.py}.
+In practice, all experiments can be executed from the \texttt{main\_quadratic.py} script.
+
 
 
 \section{Experiments}
 
-We analyzed the behavior with quadratic functions through the definition of different problems with different kinds of graph patterns (in particular complete, binomial, cycle, star, and path graph). The configurations we tested are the following:
+We analyze the behavior with quadratic functions through the definition of different scenarios with different kinds of graph patterns (in particular: complete, binomial with edge probability of $0.3$, cycle, star, and path graph). The configurations we test are the following:
 \begin{itemize}
       \item A small problem ($5$ agents in $\R^3$),
       \item A problem with higher dimensionality ($5$ agents in $\R^{15}$),
       \item A problem with many agents ($15$ and $30$ agents in $\R^3$),
       \item A problem with many agents in higher dimensionality ($15$ and $30$ agents in $\R^{15}$).
 \end{itemize}
-In addition, we performed a comparison between the distributed gradient tracking algorithm and the centralized one. For compactness in the discussion, in the rest of this report we show the results with a single initialization seed and, if not specified, it indicates that the results are consistent across different initializations. Also, for readability, for quadratic functions we report the distance to the optimum in semi-logarithmic scale instead of the cost itself which can be negative.
+In addition, we perform a comparison between the distributed gradient tracking algorithm and the centralized one. 
+
+For compactness in the discussion, in the rest of this report we show the results with a single initialization seed and, if not specified, it indicates that the results are consistent across different initializations. Also, for readability, for quadratic functions we report the distance to the optimum in semi-logarithmic scale instead of the cost itself which can be negative.
 
 
 \subsection{Comparison between different graph patterns}
 
-For the starting small problem, we can observe from \Cref{fig:quadratic_5_3} a relatively smooth improvement of the cost function and an exponentially decreasing gradient in all cases. Moreover, a result that can be expected and is consistently persistent in all the other experiments is that consensus is reached slightly faster with a complete graph. Next, by experimenting with higher dimensionality, we can observe from \Cref{fig:quadratic_5_15} that the behavior of both the cost and its gradient are very similar to the previous case with the only difference that more iterations are required to reach full convergence, indicating that the dimensionality is marginal in changing the difficulty of the problem. 
+We start the analysis by first inspecting the consensus error of the algorithm. In \Cref{fig:quadratic_consensus}, we report the average consensus error in the cases of $5$ and $15$ agents. The general behavior that can be observed is that in all cases consensus is reached, in line with the theoretical guarantees of the algorithm. However, it can also be seen that consensus is reached faster when the communication graph has more connectivity, indicating that, as intuition would suggest, being able to communicate with more agents helps in this aspect. Also, although not reported for compactness, these observations also hold for the other scenarios.
 
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
+            \centering
+            \includegraphics[width=\linewidth]{./figs/quadratic/5_3/consensus.pdf} 
+            \caption{$5$ agents in $\R^{3}$}
+      \end{subfigure}
+      \hfill
+      \begin{subfigure}[t]{0.48\linewidth}
+            \centering
+            \includegraphics[width=\linewidth]{./figs/quadratic/15_3/consensus.pdf} 
+            \caption{$15$ agents in $\R^{3}$}
+      \end{subfigure}
+      \caption{Consensus error for quadratic function minimization}
+      \label{fig:quadratic_consensus}
+\end{figure}
+
+In terms of cost function instead, for the small problem we can observe from \Cref{fig:quadratic_5_3} a relatively smooth improvement of the cost function and an exponentially decreasing gradient in all cases, as expected from theoretical results. By experimenting with variables of higher dimensionality, we can observe from \Cref{fig:quadratic_5_15} that the behavior of both the cost and its gradient are very similar to the previous case with the only difference that more iterations are required to reach full convergence, indicating that dimensionality is marginal in changing the difficulty of the problem. 
+
+\begin{figure}[H]
+      \centering
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/5_3/distance.pdf} 
             \caption{Distance to optimum}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/5_3/gradient.pdf} 
             \caption{Gradient norm evolution}
-      \end{subfigure}
-      \hfill
-      \begin{subfigure}[t]{0.46\linewidth}
-            \centering
-            \includegraphics[width=\linewidth]{./figs/quadratic/5_3/consensus.pdf} 
-            \caption{Consensus error}
       \end{subfigure}
       \caption{Quadratic function minimization with $5$ agents in $\R^{3}$}
       \label{fig:quadratic_5_3}
@@ -180,19 +200,19 @@ For the starting small problem, we can observe from \Cref{fig:quadratic_5_3} a r
 
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/5_15/distance.pdf} 
             \caption{Distance to optimum}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/5_15/gradient.pdf} 
             \caption{Gradient norm evolution}
       \end{subfigure}
       % \hfill
-      % \begin{subfigure}[t]{0.46\linewidth}
+      % \begin{subfigure}[t]{0.48\linewidth}
       %       \centering
       %       \includegraphics[width=\linewidth]{./figs/quadratic/5_15_100/consensus.pdf} 
       %       \caption{Consensus error}
@@ -201,18 +221,17 @@ For the starting small problem, we can observe from \Cref{fig:quadratic_5_3} a r
       \label{fig:quadratic_5_15}
 \end{figure}
 
-In the case of many agents with lower dimensionality, we can observe from \Cref{fig:quadratic_15_3} and \Cref{fig:quadratic_30_3} that the cost function does not reach the optimum within the given number of iterations with the configuration using the path graph, indicating that connectivity is important for larger numbers of agents. This can be explained by the fact that, by adding more agents, the overall problem includes more local losses and becomes more difficult to solve in a distributed way. From \Cref{fig:quadratic_15_15} and \Cref{fig:quadratic_30_15}, we observe the same convergence behavior as in the previous case and also confirm that, with higher dimensionality, the problem is not significantly affected.
-
+In the case of many agents with lower dimensionality, we can observe from \Cref{fig:quadratic_15_3,fig:quadratic_30_3} that the cost function does not reach the optimum within the given number of iterations with the configurations using poorly connected communication graphs, indicating that connectivity is important with larger numbers of agents. This can be explained by the fact that, by adding more agents, the overall problem includes more local losses and becomes more difficult to solve in a distributed way.
 
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/15_3/distance.pdf} 
             \caption{Distance to optimum}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/15_3/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -223,13 +242,13 @@ In the case of many agents with lower dimensionality, we can observe from \Cref{
 
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/30_3/distance.pdf} 
             \caption{Distance to optimum}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/30_3/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -238,15 +257,17 @@ In the case of many agents with lower dimensionality, we can observe from \Cref{
       \label{fig:quadratic_30_3}
 \end{figure}
 
+Lastly, by increasing variables dimensionality, from \Cref{fig:quadratic_15_15,fig:quadratic_30_15} we can observe the same convergence behavior as in the case of low dimensional variables, confirming that on this aspect the problem is not significantly affected.
+
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/15_15/distance.pdf} 
             \caption{Distance to optimum}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/15_15/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -257,13 +278,13 @@ In the case of many agents with lower dimensionality, we can observe from \Cref{
 
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/30_15/distance.pdf} 
             \caption{Distance to optimum}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/30_15/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -275,17 +296,17 @@ In the case of many agents with lower dimensionality, we can observe from \Cref{
 
 \subsection{Comparison with centralized gradient}
 
-Following the previous results, we select the configuration using the complete graph for the comparison with the centralized gradient method. In \Cref{fig:quadratic_centralized_15_3}, we can observe the results with $15$ agents, but the overall behavior is the same for all configurations. It can be seen that, as one could expect, the centralized gradient method is faster to converge compared to a distributed algorithm as it has available all the global information and does not rely on estimates and information exchange with the neighbors.
+Following the previous results, we select the best performing configuration and compare it with the centralized gradient method. In \Cref{fig:quadratic_centralized_15_3} we can observe the results with $15$ agents and a complete communication graph, but the overall behavior is the same for all configurations. It can be seen that, as one could expect, the centralized gradient method is faster to converge and it is slightly more precise compared to a distributed algorithm as it has available all the global information without relying on estimates obtained from neighbors and therefore it accumulates less numerical errors.
 
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/centralized/distance.pdf} 
             \caption{Distance to optimum}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/centralized/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -301,59 +322,58 @@ Following the previous results, we select the configuration using the complete g
 
 \section{Problem definition}
 
-The problem in the second part of the first task involves a similar context as the previous case. The fundamental difference is that the local losses each agent has to minimize are designed to solve the problem of target localization. More specifically, this problem requires the implementation of a gradient tracking algorithm for estimating the position of $N_T$ fixed targets in a distributed way through $N_R$ tracking robots. Each robot is located at position $\p_i \in \R^2$ and it is assumed that the distance measured from each robot is noisy. Given the positions $\p_i$ and $\p_\tau$ of the $i$-th robot and the $\tau$-th target, respectively, we model the measured noisy distance $d_{i,\tau}$ as follows:
+The problem in the second part of the first task involves a similar context as the previous case. The fundamental difference is that the local losses each agent has to minimize are designed to solve the problem of target localization. More specifically, this problem requires to estimate the position of $N_T \in \N$ fixed targets in a distributed way through $N_R \in \N$ tracking robots. Each robot is located at position $\p_i \in \R^2$ and it is assumed that the distance measured from each robot is noisy. Given the positions $\p_i$ and $\p_\tau$ of the $i$-th robot and the $\tau$-th target, respectively, we model the measured noisy distance $d_{i,\tau}$ from robot $i$ as follows:
 \[
       d_{i,\tau} = \Vert \p_i - \p_\tau \Vert + \varepsilon \cdot \texttt{noise}
 \]
-where $\texttt{noise} \sim P$ is drawn from some distribution $P$ and $\varepsilon \in \R$ is the noise rate.
+where $\texttt{noise} \sim P$ is drawn from some distribution $P$ and $\varepsilon \in \R$ is the noise rate that controls how much noise is injected into the measurement.
 
 The local loss each robot $i$ uses is the following:
 \[
       \begin{gathered}
-            l_i(\z) = \sum_{\tau=1}^{N_T} \left( d_{i,\tau}^2 - \Vert \z_{\tau} - \p_i \Vert^2 \right)^2
+            l_i(\z_i) = \sum_{\tau=1}^{N_T} \left( d_{i,\tau}^2 - \Vert \z_{i,\tau} - \p_i \Vert^2 \right)^2
             \quad
-            \nabla l_{i}(\z) = (\nabla l_{i,1}(\z_{1}), \dots, \nabla l_{i,N_T}(\z_{N_T}))
+            \nabla l_{i}(\z_i) = (\nabla l_{i,1}(\z_{i,1}), \dots, \nabla l_{i,N_T}(\z_{i,N_T}))
             \\
-            \nabla l_{i,j}(\z_{j}) = -4 \left( d_{i,j}^2 - \Vert \z_{j} - \p_i \Vert^2 \right) \left( \z_{j} - \p_i \right)
+            \nabla l_{i,\tau}(\z_{i,\tau}) = -4 \left( d_{i,\tau}^2 - \Vert \z_{i,\tau} - \p_i \Vert^2 \right) \left( \z_{i,\tau} - \p_i \right)
       \end{gathered}
 \]
-where $\z = (\z_{\tau_1}, \dots, \z_{\tau_{N_T}}) \in \R^{2N_T}$ is the stack of decision variables of robot $i$ containing the estimated positions of the targets $\z_{\tau} \in \R^2$ and $\nabla l_i(\z) \in \R^{2N_T}$ is the concatenation of the gradients computed with respect to each target.
+where $\z_i = (\z_{i,1}, \dots, \z_{i,N_T}) \in \R^{2N_T}$ is the stack of decision variables of robot $i$ containing the estimated positions of the targets $\z_{i,\tau} \in \R^2$ and $\nabla l_i(\z_i) \in \R^{2N_T}$ is the concatenation of the gradients computed with respect to each target.
 
 \section{Code structure}
-The code provided is structured with the following main modules (considering only the ones which have differences with the previous case):
+The code provided is structured with the following modules (considering only the differences with \Cref{sec:code_quadratic}):
 \begin{description}
-      \item[\texttt{loss.py}] Class definition of the target localization loss function.
-      \item[\texttt{plot.py}] All the functions used to plot the loss, gradient norm evolution over iterations.
-      \item[\texttt{scenarios.py}] Two functions, one aiming to create the graph $G$ and the relative adjacency matrix $A$, while the other is designed to initialize the parameters (e.g., the ground truth target positions, initial robot positions, and noisy estimated target distances) and the target localization loss functions.
+      \item[\texttt{loss.py}] contains the class definition of the target localization loss.
+      \item[\texttt{plot.py}] defines all the functions used to plot the loss and the gradient norm.
+      \item[\texttt{scenarios.py}] implements the function to initialize the parameters (i.e., the ground truth target positions, initial robot positions, and noisy estimated target distances) and the target localization loss of the problem.
 \end{description}
-In practice all the experiments can be executed from the script \texttt{main\_tracking.py}.
+In practice, all the experiments can be executed from the \texttt{main\_tracking.py} script.
 
 \section{Experiments}
 
-We approach the experimentation of such algorithm by trying different graph patterns and comparing with the centralized gradient method, similarly to the previous case. At first, we evaluated the performance of the algorithm in the following cases, all with the same type of noise:
+We approach the experimentation of this problem by trying different graph patterns and comparing with the centralized gradient method, similarly to \Cref{ch:quadratic}. At first, we evaluate the performance of the algorithm in the following cases, all with the same type of noise:
 \begin{itemize}
-      \item Network of 5 robots and 1 target,
-      \item Network of 5 robots and 3 targets,
-      \item Network of 15 robots and 3 targets,
-      \item Network of 30 robots and 3 targets.
+      \item A few robots ($5$) with a single target,
+      \item A few robots ($5$) with multiple targets ($3$),
+      \item Many robots ($15$ and $30$) with multiple targets ($3$).
 \end{itemize}
 
-Then, the focus switched to observe how much the performance changes in terms of noise. By fixing the problem configuration, we experimented with varying Gaussian noises, Poisson noises, and noise rates.
+Then, the focus switches to observe how much the performance changes in terms of noise. By fixing the problem configuration, we experiment with varying Gaussian noises, Poisson noises, and noise rates.
 
 
 \subsection{Comparison between different graph patterns}
 
-In terms of graph pattern, we can observe from \Cref{fig:tracking_5_1} and \Cref{fig:tracking_5_3} that with the same number of robots and increasing number of targets, the number of iterations required to converge is roughly the same. This makes sense as each target is independent to the others and can be tracked in parallel.
+In terms of graph patterns, we can observe from \Cref{fig:tracking_5_1,fig:tracking_5_3} that with the same number of robots and increasing number of targets, the number of iterations required to converge is roughly the same. This makes sense as each target is independent to the others and can be tracked in parallel.
 
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/5_1_2/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/5_1_2/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -364,13 +384,13 @@ In terms of graph pattern, we can observe from \Cref{fig:tracking_5_1} and \Cref
 
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/5_3_2/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/5_3_2/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -379,17 +399,17 @@ In terms of graph pattern, we can observe from \Cref{fig:tracking_5_1} and \Cref
       \label{fig:tracking_5_3}
 \end{figure}
 
-Instead, by increasing the number of tracking robots, we can see from \Cref{fig:tracking_15_3} and \Cref{fig:tracking_30_3} that the plateau is reached in fewer number of iteration, which intuitively means that more tracking robots help in reaching a faster convergence. However, we can also observe from these figures that with less connected graphs, convergence is affected negatively.
+Instead, by increasing the number of tracking robots, we can see from \Cref{fig:tracking_15_3,fig:tracking_30_3} that the plateau is reached in fewer number of iteration, which intuitively means that more tracking robots help in reaching a faster convergence. Moreover, we can also observe from these figures that, as we already mentioned, with less connected graphs convergence is affected negatively.
 
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/15_3_2/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/15_3_2/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -400,13 +420,13 @@ Instead, by increasing the number of tracking robots, we can see from \Cref{fig:
 
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/30_3_2/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/30_3_2/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -415,7 +435,7 @@ Instead, by increasing the number of tracking robots, we can see from \Cref{fig:
       \label{fig:tracking_30_3}
 \end{figure}
 
-Moreover, as the total loss is a summation, we must note that the overall loss is higher in the case of more agents or targets, but this does not indicate worse tracking results. We report in \Cref{fig:tracking_avg_error_runs} the average distance between the estimated and real target positions for a fixed configuration with varying number of robots. It can be seen, as intuition would suggest, that on average the tracking error becomes smaller by increasing the number of tracking robots.
+Moreover, as the total loss is a summation, we must note that the overall loss is higher in the case of more agents or targets, but this does not indicate worse tracking results. We report in \Cref{fig:tracking_avg_error_runs} the average distance over multiple runs between the estimated and real target positions for a fixed configuration with varying number of robots. It can be seen, as intuition would suggest, that on average the tracking error becomes smaller by increasing the number of tracking robots.
 
 \begin{figure}[H]
       \centering
@@ -442,7 +462,7 @@ Moreover, as the total loss is a summation, we must note that the overall loss i
 %       \end{tabulcar}
 % \end{table}
 
-Finally, an observation consistent in all experiments is that, as shown in \Cref{fig:tracking_consensus}, the overall behavior of this system is to reach an approximate consensus (i.e., consensus error around $10^{-4}$) in the first few iterations and then optimize the loss while improving and preserving consensus. This can also be observed in \Cref{fig:tracking_animation} where a few frames of the animation of the scenario are shown.
+Finally, an observation consistent in all experiments is that, as shown in \Cref{fig:tracking_consensus}, the overall behavior of this system is to reach an approximate consensus (i.e., consensus error around $10^{-4}$) in the first few iterations and then optimize the loss while improving and preserving consensus. This can also be observed in \Cref{fig:tracking_animation} where some frames of the animation of the scenario are shown.
 
 \begin{figure}[H]
       \centering
@@ -465,13 +485,13 @@ Compared with the centralized gradient algorithm, the plots in \Cref{fig:trackin
 
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/centralized/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/centralized/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -483,17 +503,17 @@ Compared with the centralized gradient algorithm, the plots in \Cref{fig:trackin
 
 \subsection{Different noises}
 
-From the experiments with different noises, we observed a worsening in performance that is proportional to the amount of noise injected into the distance measurement, implying as one could expect that more noise leads to worse results. This behavior is consistent with noise drawn from different distributions as in \Cref{fig:tracking_gaussian_15_3} and \Cref{fig:tracking_poisson_15_3}, and also when the noise rate is increased as in \Cref{fig:tracking_rates_15_3}.
+From the experiments with different noises, we observed a worsening in performance that is proportional to the amount of noise injected into the distance measurement, implying as one could expect that more noise leads to worse results. This behavior is consistent with noise drawn from different distributions as in \Cref{fig:tracking_gaussian_15_3,fig:tracking_poisson_15_3}, and also when the noise rate is increased as in \Cref{fig:tracking_rates_15_3}.
 
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/gaussian/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/gaussian/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -504,13 +524,13 @@ From the experiments with different noises, we observed a worsening in performan
 
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/poisson/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/poisson/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -521,13 +541,13 @@ From the experiments with different noises, we observed a worsening in performan
 
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/rates/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/rates/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -544,14 +564,14 @@ From the experiments with different noises, we observed a worsening in performan
 
 \section{Problem definition}
 
-This task consists of solving the problem of moving $N \in \N$ agents with positions $\z_i \in R^2$ in such a way that they are close to their own private target $\r_i \in \R^2$ while staying tight to the fleet. This problem can be tackled using aggregative optimization by solving the following problem:
+This task consists of solving the problem of positioning $N \in \N$ robots with positions $\z_i \in R^2$, for $i=1, \dots, N$, in such a way that they are close to their own private target $\r_i \in \R^2$ while staying tight to the fleet. This problem can be tackled using aggregative optimization by solving the following problem:
 \[
       \begin{gathered}
             \min_{\z \in \R^{2N}} \sum_{i=1}^{N} l_i(\z_i, \sigma(\z)) \\
             \text{with } \sigma(\z) = \frac{1}{N} \sum_{i=1}^{N} \phi_i(\z_i),
       \end{gathered}
 \]
-where $\z=(\z_1, \dots, \z_N)$ is the stack of the agents' positions, $l_i: \R^2 \times \R^2 \rightarrow \R$ is the local losses of agent $i$ and $\sigma: \R^{2N} \rightarrow \R^2$ is an aggregation function.
+where $\z=(\z_1, \dots, \z_N) \in \R^{2N}$ is the stack of the robots' positions, $l_i: \R^{2} \times \R^{2N} \rightarrow \R$ is the local loss of agent $i$ and $\sigma: \R^{2N} \rightarrow \R^2$ is an aggregation function.
 
 We formulate the local loss of an agent $i$ as the following function:
 \[
@@ -565,44 +585,44 @@ where the first term models the vicinity to the private targets while the second
       \end{split}
 \]
 
-In terms of aggregation function $\sigma(\z)$, the local function $\phi_i$ associated to each agent $i$ is defined as follows:
+In terms of aggregation function $\sigma(\z)$, the local function $\phi_i$ associated to agent $i$ is defined as follows:
 \[
       \phi_i(\z_i) = \alpha_i \z_i,
 \]
-where $\alpha_i \in R$ is a hyperparameter. With $\alpha_i = 1$ for all $i$, we obtain the standard formulation of the problem in which $\sigma(\z)$ represents the barycenter of the fleet. With different $\alpha_i$ (with $\sum_i^N \alpha_i = N$), we obtain a $\sigma(\z)$ that is a weighted average and can be interpreted as a barycenter that is biased towards specified agents.
+where $\alpha_i \in R$ is a hyperparameter that can be different for each agent. With $\alpha_i = 1$ for all $i$, we obtain the standard formulation of the problem in which $\sigma(\z)$ represents the barycenter of the fleet. With different $\alpha_i$ (subject to $\sum_i^N \alpha_i = N$), we obtain a $\sigma(\z)$ that is a weighted average and can be interpreted as a barycenter that is biased towards specified agents.
 
 \section{Code structure}
-The code provided is structured with the following main modules:
+For the Python version, the code is structured with the following modules:
 \begin{description}
-      \item[\texttt{algorithm.py}] Function implementing the aggregative optimization algorithm.
-      \item[\texttt{loss.py}] Class definition of the Agent and its private functions, nominally the aggregative loss and the linear function needed to compute the barycenter.
-      \item[\texttt{plot.py}] All the functions used to plot the loss, gradient norm evolution over iterations, but also an animation of the system and its single frames.
-      \item[\texttt{scenarios.py}] Two functions, one aiming to create the graph $G$ and the relative adjacency matrix $A$, while the other designed to initialize the parameters for the problem (e.g., targets' positions and list of Agents).
+      \item[\texttt{algorithm.py}] implements the aggregative optimization algorithm.
+      \item[\texttt{loss.py}] contains the definition of the loss and the aggregative function.
+      \item[\texttt{plot.py}] with the functions used to plot the loss, the gradient norm, and to animate the scenario.
+      \item[\texttt{scenarios.py}] provides the functions to to create the communication graph and to initialize the parameters for the problem.
 \end{description}
-In practice all the experiments can be executed from the \texttt{main\_tracking.py} script.
+In practice all the experiments can be executed from the \texttt{main.py} script.
 
-The agent in the ROS2 version of the project is implemented using the node defined in \texttt{Agent.py}. Each agent has a topic in which it publishes its states and listens from the topics of its neighbors. A polling timer is used to determine the communication frequency. Update steps are performed using the same functions defined in \texttt{algorithm.py}. For visualization, we implemented a node that acts as a middleware for RVIZ that reads from the topics of all agents and published some new topics for the specific markers.
+For the ROS2 version, the agent is implemented using the node defined in \texttt{Agent.py}. Each agent has a topic in which it publishes its states and listens from the topics of its neighbors. A polling timer is used to control the communication frequency while the update steps are performed using the same functions defined in \texttt{algorithm.py}. For visualization, we implemented a node that acts as a middleware for RViz that reads from the topics of all agents and published some new topics for the specific markers that are visualized in RViz.
 
 \section{Experiments}
 
-As in the previous task, we first test the effectiveness of our implementation with different graph patterns for the communication graph and different number of agents. We test with configurations consisting of $5$ robots, $15$ robots, and $30$ robots. Then, to assess the actual results, we visually check the coherence of the positioning of the agents at convergence and experiment with different loss hyperparameters to favor specific agents, and target and barycenter vicinity.
+As in the previous task, we first test the effectiveness of our implementation with different graph patterns for the communication graph and different number of agents. We test with configurations consisting of $5$, $15$, and $30$ robots. Then, to assess the actual results, we visually check the coherence of the positioning of the agents at convergence and experiment with different loss hyperparameters to favor specific agents, target vicinity or fleet tightness.
 
 
 \subsection{Comparison with different graph patterns}
 
-We first test the implementation with $5$ agents. From the plots in \Cref{fig:positioning_5}, we can observe an identical trend in terms of loss and gradient for every graph pattern we have experimented with. In all cases, we can observe that the algorithm converges, and also, visually, we can see that the final positions of the agents tends to reach an expected behavior.
+We first test the implementation with $5$ agents. From the plots in \Cref{fig:positioning_5}, we can observe an identical trend in terms of loss and gradient for every graph pattern we have experimented with. In all cases, we can observe that, as expected from theoretical results, the algorithm converges.
 
-By considering a scenario with $15$ and $30$ agents, as shown in \Cref{fig:positioning_15} and \Cref{fig:positioning_30}, we cannot detect any relevant changes in behavior as they all reach convergence in the same way as in the experiment with $5$ agents. The only thing we can underline is that the trend for less connected graphs have a little variation at convergence, most likely due to numerical instability.
+By considering a scenario with $15$ and $30$ agents, as shown in \Cref{fig:positioning_15,fig:positioning_30}, we cannot detect any relevant changes in behavior as they all reach convergence in a similar way as in the experiment with $5$ agents. The only thing we can underline is that the trend for less connected graphs have a little variation at convergence, most likely due to numerical instability.
 
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/aggregative/few_agents/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/aggregative/few_agents/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -613,13 +633,13 @@ By considering a scenario with $15$ and $30$ agents, as shown in \Cref{fig:posit
 
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/aggregative/more_agents/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/aggregative/more_agents/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -630,13 +650,13 @@ By considering a scenario with $15$ and $30$ agents, as shown in \Cref{fig:posit
 
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/aggregative/lots_agents/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.46\linewidth}
+      \begin{subfigure}[t]{0.48\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/aggregative/lots_agents/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -649,7 +669,7 @@ By considering a scenario with $15$ and $30$ agents, as shown in \Cref{fig:posit
 
 \subsection{Comparison with different loss configurations}
 
-To test the visual results, we first check the results in the plain version with equally weighted loss components and equal agents' importance. Results are presented in \Cref{fig:anim_plain} in Python and \Cref{fig:anim_plain_ros2} in ROS2. As one could expect, with the two components of the loss balanced, the agents converge to a position that is midway between the barycenter and their private target.
+To test the visual results, we first check the results in the plain version with equally weighted loss components and equal agents' importance. Results are presented in \Cref{fig:anim_plain} in Python and \Cref{fig:anim_plain_ros2} in ROS2. As one could expect, with the two components of the loss balanced, neither are favored and the agents converge to a position that is midway between the barycenter and their private target.
 \begin{figure}[H]
       \centering
       \includegraphics[width=0.9\linewidth]{./figs/aggregative/plain_anim/anim.pdf} 
@@ -696,9 +716,9 @@ Then, we continue the experiments by checking the results in terms of different 
 \chapter*{Conclusions}
 \addcontentsline{toc}{chapter}{Conclusions} 
 
-We tackled both problems and performed a set of experiments for each task. Regarding the multi-robot target localization problem, we tested the variation in performance under different graph patterns, number of agents, and dimensionality of the state variables. These tests showed that all graph patterns converge when using quadratic functions and higher connectivity helps in reaching it faster, which is more noticeable in case of higher numbers of agents. Instead, in the case of the target tracking loss, the most important observation is that convergence is faster with a higher number of agents and more connected graph patterns. Other tests showed that under different noise distributions and intensities, tracking accuracy, as expected, worsens for stronger amounts of noise.
+In this project, we tackled and experimented with the problem of multi-robot target localization and positioning. Regarding the multi-robot target localization problem, we tested the variation in performance under different graph patterns, number of agents, and dimensionality of the state variables. These tests showed that all graph patterns converge and higher graph connectivity helps in reaching it faster, which is more noticeable in case of larger numbers of agents. Other tests showed that under different noise distributions and intensities, tracking accuracy, as expected, is higher with more agents and worsens for stronger amounts of noise.
 
-Regarding the aggregative optimization problem, we first observed how the loss and gradient norm evolution changes based on different graph patterns and number of agents. The outcome showed a nearly identical trend for all the configurations, independently of the number of robots. Additional experiments were performed by changing the loss hyperparameters affecting agents' importance, and targets and barycenter weights. Results showed that the agents' movement and the final positions were intuitively the expected ones.
+Regarding the multi-robot positioning problem, we first observed similar trends for all the configurations in terms of loss and gradient behavior, independently of the number of robots or the communication graph pattern. Additional experiments were performed and assessed visually by changing the loss hyperparameters affecting robots' importance, target vicinity and fleet tightness. Results showed that the loss function provides flexibility in tuning the constraints and the robots' final positions were the expected ones.
 
 
 
