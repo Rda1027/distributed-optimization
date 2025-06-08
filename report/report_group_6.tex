@@ -46,7 +46,7 @@
       {\Large Master Degree in Artificial Intelligence} \\
       \vspace{20mm}
       {\LARGE Distributed Autonomous Systems} \\
-      \vspace{5mm}{\Large\textbf{TITLE}}                  
+      \vspace{5mm}{\Large\textbf{Multi-Robot Distributed Optimization}}                  
       \vspace{15mm}
 \end{center}
 \begin{minipage}{0.48\linewidth}
@@ -105,19 +105,12 @@ In practical terms, most of the work has been done in pair programming and both 
 
 
 
-% \chapter{Multi-Robot Target Localization}
-
 \setcounter{page}{1}
-\chapter{Gradient tracking with quadratic functions} \label{ch:quadratic}
+\chapter{Gradient Tracking with Quadratic Functions} \label{ch:quadratic}
+
 
 
 \section{Problem definition}
-
-% The goal of the first task is to solve a multi-robot target localization problem. We consider a fleet of $N \in \N$ agents and a collection of $N_T \in \N$ targets, in which each agent makes noisy measurements of its distance from every target. The objective is to design a distributed algorithm, in order to minimize the loss between every target estimated position and its ground truth (as formulated below), with a particular focus on trying to reach a consensus within the fleet.
-% \[
-%       \min_{\z \in \R^{d}} \sum_{i=1}^{N} l_i(\z)
-% \]
-
 
 The first part of the first task consists of implementing the gradient tracking algorithm generalized in $\R^d$ and experimenting with the implementation using quadratic functions, which we define in the usual way as:
 \[
@@ -160,17 +153,15 @@ For compactness in the discussion, in the rest of this report we show the result
 
 \subsection{Comparison between different graph patterns}
 
-We start the analysis by first inspecting the consensus error of the algorithm. In \Cref{fig:quadratic_consensus}, we report the average consensus error in the cases of $5$ and $15$ agents. The general behavior that can be observed is that in all cases consensus is reached, in line with the theoretical guarantees of the algorithm. However, it can also be seen that consensus is reached faster when the communication graph has more connectivity, indicating that, as intuition would suggest, being able to communicate with more agents helps in this aspect. Also, although not reported for compactness, these observations also hold for the other scenarios.
-
-\begin{figure}[H]
+\begin{figure}[h!]
       \centering
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.43\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/5_3/consensus.pdf} 
             \caption{$5$ agents in $\R^{3}$}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.43\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/15_3/consensus.pdf} 
             \caption{$15$ agents in $\R^{3}$}
@@ -179,17 +170,18 @@ We start the analysis by first inspecting the consensus error of the algorithm. 
       \label{fig:quadratic_consensus}
 \end{figure}
 
-In terms of cost function instead, for the small problem we can observe from \Cref{fig:quadratic_5_3} a relatively smooth improvement of the cost function and an exponentially decreasing gradient in all cases, as expected from theoretical results. By experimenting with variables of higher dimensionality, we can observe from \Cref{fig:quadratic_5_15} that the behavior of both the cost and its gradient are very similar to the previous case with the only difference that more iterations are required to reach full convergence, indicating that dimensionality is marginal in changing the difficulty of the problem. 
+We start the analysis by first inspecting the consensus error of the algorithm. In \Cref{fig:quadratic_consensus}, we report the average consensus error in the cases of $5$ and $15$ agents. The general behavior that can be observed is that in all cases consensus is reached, in line with the theoretical guarantees of the algorithm. However, it can also be seen that consensus is reached faster when the communication graph has more connectivity, indicating that, as intuition would suggest, being able to communicate with more agents helps in this aspect. Also, although not reported for compactness, these observations also hold for the other scenarios.
 
-\begin{figure}[H]
+
+\begin{figure}[h!]
       \centering
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.42\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/5_3/distance.pdf} 
             \caption{Distance to optimum}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.42\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/5_3/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -198,40 +190,35 @@ In terms of cost function instead, for the small problem we can observe from \Cr
       \label{fig:quadratic_5_3}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[h!]
       \centering
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.42\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/5_15/distance.pdf} 
             \caption{Distance to optimum}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.42\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/5_15/gradient.pdf} 
             \caption{Gradient norm evolution}
       \end{subfigure}
-      % \hfill
-      % \begin{subfigure}[t]{0.48\linewidth}
-      %       \centering
-      %       \includegraphics[width=\linewidth]{./figs/quadratic/5_15_100/consensus.pdf} 
-      %       \caption{Consensus error}
-      % \end{subfigure}
       \caption{Quadratic function minimization with $5$ agents in $\R^{15}$}
       \label{fig:quadratic_5_15}
 \end{figure}
 
-In the case of many agents with lower dimensionality, we can observe from \Cref{fig:quadratic_15_3,fig:quadratic_30_3} that the cost function does not reach the optimum within the given number of iterations with the configurations using poorly connected communication graphs, indicating that connectivity is important with larger numbers of agents. This can be explained by the fact that, by adding more agents, the overall problem includes more local losses and becomes more difficult to solve in a distributed way.
+In terms of cost function instead, for the small problem we can observe from \Cref{fig:quadratic_5_3} a relatively smooth improvement of the cost function and an exponentially decreasing gradient in all cases, as expected from theoretical results. By experimenting with variables of higher dimensionality, we can observe from \Cref{fig:quadratic_5_15} that the behavior of both the cost and its gradient are very similar to the previous case with the only difference that more iterations are required to reach full convergence, indicating that dimensionality is marginal in changing the difficulty of the problem. 
 
-\begin{figure}[H]
+
+\begin{figure}[h!]
       \centering
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.42\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/15_3/distance.pdf} 
             \caption{Distance to optimum}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.42\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/15_3/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -240,15 +227,15 @@ In the case of many agents with lower dimensionality, we can observe from \Cref{
       \label{fig:quadratic_15_3}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[h!]
       \centering
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.42\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/30_3/distance.pdf} 
             \caption{Distance to optimum}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.42\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/30_3/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -257,17 +244,18 @@ In the case of many agents with lower dimensionality, we can observe from \Cref{
       \label{fig:quadratic_30_3}
 \end{figure}
 
-Lastly, by increasing variables dimensionality, from \Cref{fig:quadratic_15_15,fig:quadratic_30_15} we can observe the same convergence behavior as in the case of low dimensional variables, confirming that on this aspect the problem is not significantly affected.
+In the case of many agents with lower dimensionality, we can observe from \Cref{fig:quadratic_15_3,fig:quadratic_30_3} that the cost function does not reach the optimum within the given number of iterations with the configurations using poorly connected communication graphs, indicating that connectivity is important with larger numbers of agents. This can be explained by the fact that, by adding more agents, the overall problem includes more local losses and becomes more difficult to solve in a distributed way.
 
-\begin{figure}[H]
+
+\begin{figure}[h!]
       \centering
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.42\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/15_15/distance.pdf} 
             \caption{Distance to optimum}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.42\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/15_15/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -276,15 +264,15 @@ Lastly, by increasing variables dimensionality, from \Cref{fig:quadratic_15_15,f
       \label{fig:quadratic_15_15}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[h!]
       \centering
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.42\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/30_15/distance.pdf} 
             \caption{Distance to optimum}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.42\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/30_15/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -293,20 +281,22 @@ Lastly, by increasing variables dimensionality, from \Cref{fig:quadratic_15_15,f
       \label{fig:quadratic_30_15}
 \end{figure}
 
+Lastly, by increasing variables dimensionality, from \Cref{fig:quadratic_15_15,fig:quadratic_30_15} we can observe the same convergence behavior as in the case of low dimensional variables, confirming that on this aspect the problem is not significantly affected.
+
 
 \subsection{Comparison with centralized gradient}
 
 Following the previous results, we select the best performing configuration and compare it with the centralized gradient method. In \Cref{fig:quadratic_centralized_15_3} we can observe the results with $15$ agents and a complete communication graph, but the overall behavior is the same for all configurations. It can be seen that, as one could expect, the centralized gradient method is faster to converge and it is slightly more precise compared to a distributed algorithm as it has available all the global information without relying on estimates obtained from neighbors and therefore it accumulates less numerical errors.
 
-\begin{figure}[H]
+\begin{figure}[h!]
       \centering
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.43\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/centralized/distance.pdf} 
             \caption{Distance to optimum}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.43\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/centralized/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -317,7 +307,8 @@ Following the previous results, we select the best performing configuration and 
 
 
 
-\chapter{Cooperative multi-robot target localization} \label{ch:localization}
+
+\chapter{Cooperative Multi-Robot Target Localization} \label{ch:localization}
 
 
 \section{Problem definition}
@@ -349,6 +340,8 @@ The code provided is structured with the following modules (considering only the
 \end{description}
 In practice, all the experiments can be executed from the \texttt{main\_tracking.py} script.
 
+
+
 \section{Experiments}
 
 We approach the experimentation of this problem by trying different graph patterns and comparing with the centralized gradient method, similarly to \Cref{ch:quadratic}. At first, we evaluate the performance of the algorithm in the following cases, all with the same type of noise:
@@ -365,15 +358,15 @@ Then, the focus switches to observe how much the performance changes in terms of
 
 In terms of graph patterns, we can observe from \Cref{fig:tracking_5_1,fig:tracking_5_3} that with the same number of robots and increasing number of targets, the number of iterations required to converge is roughly the same. This makes sense as each target is independent to the others and can be tracked in parallel.
 
-\begin{figure}[H]
+\begin{figure}[h!]
       \centering
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.4\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/5_1_2/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.4\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/5_1_2/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -382,15 +375,15 @@ In terms of graph patterns, we can observe from \Cref{fig:tracking_5_1,fig:track
       \label{fig:tracking_5_1}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[h!]
       \centering
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.4\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/5_3_2/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.4\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/5_3_2/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -399,17 +392,18 @@ In terms of graph patterns, we can observe from \Cref{fig:tracking_5_1,fig:track
       \label{fig:tracking_5_3}
 \end{figure}
 
+
 Instead, by increasing the number of tracking robots, we can see from \Cref{fig:tracking_15_3,fig:tracking_30_3} that the plateau is reached in fewer number of iteration, which intuitively means that more tracking robots help in reaching a faster convergence. Moreover, we can also observe from these figures that, as we already mentioned, with less connected graphs convergence is affected negatively.
 
-\begin{figure}[H]
+\begin{figure}[h!]
       \centering
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.4\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/15_3_2/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.4\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/15_3_2/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -418,15 +412,15 @@ Instead, by increasing the number of tracking robots, we can see from \Cref{fig:
       \label{fig:tracking_15_3}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[h!]
       \centering
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.4\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/30_3_2/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.4\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/30_3_2/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -435,45 +429,29 @@ Instead, by increasing the number of tracking robots, we can see from \Cref{fig:
       \label{fig:tracking_30_3}
 \end{figure}
 
+
 Moreover, as the total loss is a summation, we must note that the overall loss is higher in the case of more agents or targets, but this does not indicate worse tracking results. We report in \Cref{fig:tracking_avg_error_runs} the average distance over multiple runs between the estimated and real target positions for a fixed configuration with varying number of robots. It can be seen, as intuition would suggest, that on average the tracking error becomes smaller by increasing the number of tracking robots.
 
-\begin{figure}[H]
+\begin{figure}[h!]
       \centering
       \includegraphics[width=0.46\linewidth]{./figs/tracking/average/avg_tracking.pdf}
       \caption{Average tracking error for different number of robots (average of 5 runs). Vertical bars represent the standard deviation.}
       \label{fig:tracking_avg_error_runs}
 \end{figure}
 
-% \begin{table}[ht]
-%       \centering
-%       \small
-%       \caption{Average tracking error at the last iteration}
-%       \label{tab:tracking_error}
-%       \begin{tabular}{lccc}
-%             \toprule
-%             & $N_R=5, N_T=1$ & $N_R=5, N_T=3$ & $N_R=15, N_T=3$ \\
-%             \midrule
-%             \textbf{Complete} & $0.03008$ & $0.00554$ & $0.00500$ \\
-%             \textbf{Binomial} & $0.03008$ & $0.00554$ & $0.00500$ \\
-%             \textbf{Cycle}    & $0.03008$ & $0.00554$ & $0.00500$ \\
-%             \textbf{Star}     & $0.03007$ & $0.00554$ & $0.00500$ \\
-%             \textbf{Path}     & $0.03009$ & $0.00553$ & $0.00501$ \\
-%             \bottomrule
-%       \end{tabulcar}
-% \end{table}
 
 Finally, an observation consistent in all experiments is that, as shown in \Cref{fig:tracking_consensus}, the overall behavior of this system is to reach an approximate consensus (i.e., consensus error around $10^{-4}$) in the first few iterations and then optimize the loss while improving and preserving consensus. This can also be observed in \Cref{fig:tracking_animation} where some frames of the animation of the scenario are shown.
 
-\begin{figure}[H]
+\begin{figure}[h!]
       \centering
-      \includegraphics[width=0.46\linewidth]{./figs/tracking/15_3_2/consensus.pdf} 
+      \includegraphics[width=0.44\linewidth]{./figs/tracking/15_3_2/consensus.pdf} 
       \caption{Tracking with $15$ robots and $3$ targets}
       \label{fig:tracking_consensus}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[h!]
       \centering
-      \includegraphics[width=\linewidth]{./figs/tracking/anim.pdf} 
+      \includegraphics[width=0.9\linewidth]{./figs/tracking/anim.pdf} 
       \caption{Tracking animation with $3$ robots and $1$ target}
       \label{fig:tracking_animation}
 \end{figure}
@@ -483,15 +461,15 @@ Finally, an observation consistent in all experiments is that, as shown in \Cref
 
 Compared with the centralized gradient algorithm, the plots in \Cref{fig:tracking_centralized_5_3} confirm what we observed before in the case of quadratic functions. The convergence speed is faster and more accurate in a centralized approach, which also results in a lower average tracking error.
 
-\begin{figure}[H]
+\begin{figure}[h!]
       \centering
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.43\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/centralized/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.43\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/centralized/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -501,19 +479,19 @@ Compared with the centralized gradient algorithm, the plots in \Cref{fig:trackin
 \end{figure}
 
 
-\subsection{Different noises}
+\subsection{Comparison with different noises}
 
 From the experiments with different noises, we observed a worsening in performance that is proportional to the amount of noise injected into the distance measurement, implying as one could expect that more noise leads to worse results. This behavior is consistent with noise drawn from different distributions as in \Cref{fig:tracking_gaussian_15_3,fig:tracking_poisson_15_3}, and also when the noise rate is increased as in \Cref{fig:tracking_rates_15_3}.
 
-\begin{figure}[H]
+\begin{figure}[htb!]
       \centering
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.43\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/gaussian/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.43\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/gaussian/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -524,13 +502,13 @@ From the experiments with different noises, we observed a worsening in performan
 
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.43\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/poisson/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.43\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/poisson/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -541,13 +519,13 @@ From the experiments with different noises, we observed a worsening in performan
 
 \begin{figure}[H]
       \centering
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.43\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/rates/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.43\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/tracking/rates/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -560,6 +538,7 @@ From the experiments with different noises, we observed a worsening in performan
 
 
 \chapter{Aggregative Optimization for Multi-Robot Systems} \label{ch:aggregative}
+
 
 
 \section{Problem definition}
@@ -591,6 +570,8 @@ In terms of aggregation function $\sigma(\z)$, the local function $\phi_i$ assoc
 \]
 where $\alpha_i \in R$ is a hyperparameter that can be different for each agent. With $\alpha_i = 1$ for all $i$, we obtain the standard formulation of the problem in which $\sigma(\z)$ represents the barycenter of the fleet. With different $\alpha_i$ (subject to $\sum_i^N \alpha_i = N$), we obtain a $\sigma(\z)$ that is a weighted average and can be interpreted as a barycenter that is biased towards specified agents.
 
+
+
 \section{Code structure}
 For the Python version, the code is structured with the following modules:
 \begin{description}
@@ -603,6 +584,8 @@ In practice all the experiments can be executed from the \texttt{main.py} script
 
 For the ROS2 version, the agent is implemented using the node defined in \texttt{Agent.py}. Each agent has a topic in which it publishes its states and listens from the topics of its neighbors. A polling timer is used to control the communication frequency while the update steps are performed using the same functions defined in \texttt{algorithm.py}. For visualization, we implemented a node that acts as a middleware for RViz that reads from the topics of all agents and published some new topics for the specific markers that are visualized in RViz.
 
+
+
 \section{Experiments}
 
 As in the previous task, we first test the effectiveness of our implementation with different graph patterns for the communication graph and different number of agents. We test with configurations consisting of $5$, $15$, and $30$ robots. Then, to assess the actual results, we visually check the coherence of the positioning of the agents at convergence and experiment with different loss hyperparameters to favor specific agents, target vicinity or fleet tightness.
@@ -612,17 +595,15 @@ As in the previous task, we first test the effectiveness of our implementation w
 
 We first test the implementation with $5$ agents. From the plots in \Cref{fig:positioning_5}, we can observe an identical trend in terms of loss and gradient for every graph pattern we have experimented with. In all cases, we can observe that, as expected from theoretical results, the algorithm converges.
 
-By considering a scenario with $15$ and $30$ agents, as shown in \Cref{fig:positioning_15,fig:positioning_30}, we cannot detect any relevant changes in behavior as they all reach convergence in a similar way as in the experiment with $5$ agents. The only thing we can underline is that the trend for less connected graphs have a little variation at convergence, most likely due to numerical instability.
-
-\begin{figure}[H]
+\begin{figure}[h!]
       \centering
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.4\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/aggregative/few_agents/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.4\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/aggregative/few_agents/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -631,15 +612,15 @@ By considering a scenario with $15$ and $30$ agents, as shown in \Cref{fig:posit
       \label{fig:positioning_5}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[h!]
       \centering
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.43\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/aggregative/more_agents/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.43\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/aggregative/more_agents/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -648,15 +629,15 @@ By considering a scenario with $15$ and $30$ agents, as shown in \Cref{fig:posit
       \label{fig:positioning_15}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[h!]
       \centering
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.43\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/aggregative/lots_agents/loss.pdf} 
             \caption{Loss evolution}
       \end{subfigure}
       \hfill
-      \begin{subfigure}[t]{0.48\linewidth}
+      \begin{subfigure}[h]{0.4\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/aggregative/lots_agents/gradient.pdf} 
             \caption{Gradient norm evolution}
@@ -665,19 +646,20 @@ By considering a scenario with $15$ and $30$ agents, as shown in \Cref{fig:posit
       \label{fig:positioning_30}
 \end{figure}
 
+By considering a scenario with $15$ and $30$ agents, as shown in \Cref{fig:positioning_15,fig:positioning_30}, we cannot detect any relevant changes in behavior as they all reach convergence in a similar way as in the experiment with $5$ agents. The only thing we can underline is that the trend for less connected graphs have a little variation at convergence, most likely due to numerical instability.
 
 
 \subsection{Comparison with different loss configurations}
 
 To test the visual results, we first check the results in the plain version with equally weighted loss components and equal agents' importance. Results are presented in \Cref{fig:anim_plain} in Python and \Cref{fig:anim_plain_ros2} in ROS2. As one could expect, with the two components of the loss balanced, neither are favored and the agents converge to a position that is midway between the barycenter and their private target.
-\begin{figure}[H]
+\begin{figure}[h!]
       \centering
       \includegraphics[width=0.9\linewidth]{./figs/aggregative/plain_anim/anim.pdf} 
       \caption{Frames with $5$ robots and balanced loss. Dashed lines connect robots to the targets and solid lines are the trajectories.}
       \label{fig:anim_plain}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[h!]
       \centering
       \includegraphics[width=0.75\linewidth]{./figs/aggregative/plain_anim/ros2.png} 
       \caption{Frames with $5$ robots and barycenter that prioritizes robot $0$. Spheres are agents, cubes are targets, and the cylinder is the barycenter.}
@@ -685,9 +667,6 @@ To test the visual results, we first check the results in the plain version with
 \end{figure}
 
 Then, we continue the experiments by checking the results in terms of different loss hyperparameters. We experiment our formulation with different weights to prioritize target vicinity (higher $\gamma_1$), barycenter vicinity (higher $\gamma_2$), and different agents' importance (different $\alpha_i$). Results are presented in \Cref{fig:anim_target}, \Cref{fig:anim_barycenter}, and \Cref{fig:anim_importance}, respectively. In all cases the positions at convergence are intuitively the expected ones, showing that the algorithm allows many degrees of freedom.
-
-
-
 
 \begin{figure}[H]
       \centering
