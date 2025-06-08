@@ -2,35 +2,72 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation
 import numpy as np
+from .loss import Agent
 
 from typing import Optional
 import numpy.typing as npt
 
 
 
-def plot_loss(agents, history_z, history_sigma, label):
+def plot_loss(agents: list[Agent], history_z: npt.NDArray, history_sigma: npt.NDArray, label: str):
     """
-        Plots the loss function
+        Plots the loss function.
+
+        Args:
+            agents (list[Agent]):
+                List of agents.
+            history_z (npt.NDArray):
+                Evolution of the position estimates [NUM_ITERS, NUM_AGENTS, VARS_DIM].
+            history_sigma (npt.NDArray):
+                Evolution of the sigma estimates [NUM_ITERS, NUM_AGENTS, VARS_DIM].
+            label (str)
     """
     plt.plot([ sum(agents[i].loss(z[i], s[i]) for i in range(len(agents))) for z, s in zip(history_z, history_sigma) ], label=label)
     plt.yscale("log")
 
 
-def plot_gradient(agents, history_z, history_sigma, history_v, label):
+def plot_gradient(agents: list[Agent], history_z: npt.NDArray, history_sigma: npt.NDArray, history_v: npt.NDArray, label: str, precise: bool=False):
     """
-        Plots the norm of the gradient of the loss
+        Plots the norm of the gradient of the loss.
+
+        Args:
+            agents (list[Agent]):
+                List of agents.
+            history_z (npt.NDArray):
+                Evolution of the position estimates [NUM_ITERS, NUM_AGENTS, VARS_DIM].
+            history_sigma (npt.NDArray):
+                Evolution of the sigma estimates [NUM_ITERS, NUM_AGENTS, VARS_DIM].
+            label (str)
+            precise(bool):
+                If True, the real sigma and the gradient w.r.t. sigma are used. 
+                Otherwise, the estimates are used.
     """
-    plt.plot(
-        [ 
+    if precise:
+        history_grad = []
+        for z in history_z:
+            # Compute sigma and grad2 in a centralized way
+            sigma = np.mean([ agents[i].phi(z[i]) for i in range(len(agents)) ], axis=0)
+            global_grad2 = sum( agents[j].loss.grad2(z[j], sigma) for j in range(len(agents)) )
+            
+            history_grad.append(
+                np.linalg.norm( 
+                    np.sum(
+                        [ agents[i].loss.grad1(z[i], sigma) + global_grad2 * (1/len(agents))*agents[i].phi.grad(z[i]) for i in range(len(agents)) ], 
+                        axis=0
+                    )
+                ) 
+            )
+    else:
+        history_grad = [ 
             np.linalg.norm( 
                 np.sum(
                     [ agents[i].loss.grad1(z[i], s[i]) + v[i] * agents[i].phi.grad(z[i]) for i in range(len(agents)) ], 
                     axis=0
                 )
             ) for z, s, v in zip(history_z, history_sigma, history_v) 
-        ], 
-        label = label
-    )
+        ]
+
+    plt.plot(history_grad, label=label)
     plt.yscale("log")
 
 
@@ -38,9 +75,9 @@ def plot_scenario(
         agents,
         robots_pos: npt.NDArray, 
         target_pos: npt.NDArray,
-        draw_line_to_target = True,
-        past_positions = None,
-        show_legend = True
+        draw_line_to_target: bool = True,
+        past_positions: Optional[npt.NDArray] = None,
+        show_legend: bool = True
     ):
     """
         Plots an istance of the position tracking problem.
@@ -48,14 +85,13 @@ def plot_scenario(
         Args:
             robots_pos (npt.NDArray):
                 Position of the robots ([NUM_ROBOTS x VARS_DIM]).
-            targets_pos_real (npt.NDArray):
-                Position of the targets ([NUM_TARGETS x VARS_DIM]).
-            est_targets_dists (Optional[npt.NDArray]):
-                Noisy distance measured by the robots ([NUM_ROBOTS x NUM_TARGETS]). 
-                If provided, the radius that satisfy the distance for each robot is plotted.
-            est_targets_pos (Optional[npt.NDArray]):
-                Position of the targets estimated by the robots ([NUM_ROBOTS x NUM_TARGETS x VARS_DIM]).
-                If provided, they will be plotted.
+            target_pos (npt.NDArray):
+                Position of the private targets ([NUM_ROBOTS x VARS_DIM]).
+            draw_line_to_target (bool):
+                If True, a line connecting each robot to its private target is drawn.
+            past_positions (Optional[npt.NDArray]):
+                If provided, the trajectories of the robots are drawn. It should be the history of the estimates ([NUM_ITERS x NUM_ROBOTS x VARS_DIM]).
+            show_legend (bool)
     """
     def __get_color(i):
         return matplotlib.colormaps["tab10"](i % 10)
@@ -89,7 +125,7 @@ def plot_scenario(
 
 
 def plot_animation(
-        agents,
+        agents: list[Agent],
         history_estimates: npt.NDArray, 
         targets_pos: npt.NDArray, 
         ff_threshold: Optional[int] = None,
@@ -99,12 +135,12 @@ def plot_animation(
         Generates an animation for the position tracking problem.
 
         Args:
-            robots_pos (npt.NDArray):
-                Position of the robots ([NUM_ROBOTS x VARS_DIM]).
-            targets_pos_real (npt.NDArray):
-                Position of the targets ([NUM_TARGETS x VARS_DIM]).
+            agents (list[Agent]):
+                List of agents.
             history_estimates (npt.NDArray):
-                Evolution of the estimates of the robots ([NUM_ITERS x NUM_ROBOTS x NUM_TARGETS x VARS_DIM]).
+                Evolution of the position estimates of the robots ([NUM_ITERS x NUM_ROBOTS x VARS_DIM]).
+            targets_pos (npt.NDArray):
+                Position of the private targets [NUM_ROBOTS x VARS_DIM].
             ff_threshold (Optional[int]):
                 If set, after the provided number of frames, the animation will be speed up.
             sample_size (int):
