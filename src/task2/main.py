@@ -154,16 +154,16 @@ def plot_ros2_logs(logs_dir):
 
     
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="Model training")
-    parser.add_argument("--animation", action="store_true", default=False)
-    parser.add_argument("--animation-target", action="store_true", default=False)
-    parser.add_argument("--animation-barycenter", action="store_true", default=False)
-    parser.add_argument("--animation-importance", action="store_true", default=False)
-    parser.add_argument("--few-agents", action="store_true", default=False)
-    parser.add_argument("--more-agents", action="store_true", default=False)
-    parser.add_argument("--lots-agents", action="store_true", default=False)
-    parser.add_argument("--ros2", action="store_true", default=False)
-    parser.add_argument("--seed", type=int, default=42, help="Initialization seed")
+    parser = argparse.ArgumentParser(prog="Multi-robot positioning")
+    parser.add_argument("--animation", action="store_true", default=False, help="Run animation with 5 robots.")
+    parser.add_argument("--animation-target", action="store_true", default=False, help="Run animation with 5 robots and higher target weight in loss.")
+    parser.add_argument("--animation-barycenter", action="store_true", default=False, help="Run animation with 5 robots and higher barycenter weight in loss.")
+    parser.add_argument("--animation-importance", action="store_true", default=False, help="Run animation with 5 robots with barycenter biased toward one robot.")
+    parser.add_argument("--few-agents", action="store_true", default=False, help="Run graph patterns comparison with 5 robots.")
+    parser.add_argument("--more-agents", action="store_true", default=False, help="Run graph patterns comparison with 15 robots.")
+    parser.add_argument("--lots-agents", action="store_true", default=False, help="Run graph patterns comparison with 30 robots.")
+    parser.add_argument("--ros2", action="store_true", default=False, help="Visualize ROS2 logs from the `ros2-logs` directory.")
+    parser.add_argument("--seed", type=int, default=42, help="Initialization seed. Defaults to 42.")
     args = parser.parse_args()
 
     if args.animation:

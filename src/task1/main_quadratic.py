@@ -142,16 +142,16 @@ def quadratic_centralized(num_agents, vars_dim, graph_form, alpha, num_iters, se
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="Model training")
-    parser.add_argument("--few-agents-low-dim", action="store_true", default=False)
-    parser.add_argument("--few-agents-high-dim", action="store_true", default=False)
-    parser.add_argument("--many-agents-low-dim", action="store_true", default=False)
-    parser.add_argument("--many-agents-high-dim", action="store_true", default=False)
-    parser.add_argument("--lots-agents-low-dim", action="store_true", default=False)
-    parser.add_argument("--lots-agents-high-dim", action="store_true", default=False)
-    parser.add_argument("--centralized-small", action="store_true", default=False)
-    parser.add_argument("--centralized-large", action="store_true", default=False)
-    parser.add_argument("--seed", type=int, default=42, help="Initialization seed")
+    parser = argparse.ArgumentParser(prog="Quadratic function minimization")
+    parser.add_argument("--few-agents-low-dim", action="store_true", default=False, help="Run graph patterns comparison with 5 agents in R^3.")
+    parser.add_argument("--few-agents-high-dim", action="store_true", default=False, help="Run graph patterns comparison with 5 agents in R^15.")
+    parser.add_argument("--many-agents-low-dim", action="store_true", default=False, help="Run graph patterns comparison with 15 agents in R^3.")
+    parser.add_argument("--many-agents-high-dim", action="store_true", default=False, help="Run graph patterns comparison with 15 agents in R^15.")
+    parser.add_argument("--lots-agents-low-dim", action="store_true", default=False, help="Run graph patterns comparison with 30 agents in R^3.")
+    parser.add_argument("--lots-agents-high-dim", action="store_true", default=False, help="Run graph patterns comparison with 30 agents in R^15.")
+    parser.add_argument("--centralized-small", action="store_true", default=False, help="Run with 5 agents in R^3 compared to centralized gradient descent.")
+    parser.add_argument("--centralized-large", action="store_true", default=False, help="Run with 15 agents in R^3 compared to centralized gradient descent.")
+    parser.add_argument("--seed", type=int, default=42, help="Initialization seed. Defaults to 42.")
     args = parser.parse_args()
 
     if args.few_agents_low_dim:

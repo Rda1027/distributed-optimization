@@ -280,18 +280,18 @@ def tracking_noise_cancel(num_robots_list, num_targets, vars_dim, graph_form, al
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="Model training")
-    parser.add_argument("--animation", action="store_true", default=False)
-    parser.add_argument("--few-robots-1-target", action="store_true", default=False)
-    parser.add_argument("--few-robots-many-targets", action="store_true", default=False)
-    parser.add_argument("--many-robots-many-targets", action="store_true", default=False)
-    parser.add_argument("--lots-robots-many-targets", action="store_true", default=False)
-    parser.add_argument("--centralized", action="store_true", default=False)
-    parser.add_argument("--gaussian-noise", action="store_true", default=False)
-    parser.add_argument("--poisson-noise", action="store_true", default=False)
-    parser.add_argument("--noise-rates", action="store_true", default=False)
-    parser.add_argument("--noise-cancel", action="store_true", default=False)
-    parser.add_argument("--seed", type=int, default=42, help="Initialization seed")
+    parser = argparse.ArgumentParser(prog="Multi-robot target localization")
+    parser.add_argument("--animation", action="store_true", default=False, help="Run animation with 5 robots and 1 target.")
+    parser.add_argument("--few-robots-1-target", action="store_true", default=False, help="Run graph patterns comparison with 5 robots and 1 target.")
+    parser.add_argument("--few-robots-many-targets", action="store_true", default=False, help="Run graph patterns comparison with 5 robots and 3 targets.")
+    parser.add_argument("--many-robots-many-targets", action="store_true", default=False, help="Run graph patterns comparison with 15 robots and 3 targets.")
+    parser.add_argument("--lots-robots-many-targets", action="store_true", default=False, help="Run graph patterns comparison with 30 robots and 3 targets.")
+    parser.add_argument("--centralized", action="store_true", default=False, help="Run 15 robots and 3 targets compared to centralized gradient descent.")
+    parser.add_argument("--gaussian-noise", action="store_true", default=False, help="Run 15 robots and 1 target with varying Gaussian noise.")
+    parser.add_argument("--poisson-noise", action="store_true", default=False, help="Run 15 robots and 1 target with varying Poisson noise.")
+    parser.add_argument("--noise-rates", action="store_true", default=False, help="Run 15 robots and 1 target with varying noise rates.")
+    parser.add_argument("--noise-cancel", action="store_true", default=False, help="Multiple runs with increasing number of robots.")
+    parser.add_argument("--seed", type=int, default=42, help="Initialization seed. Defaults to 42.")
     args = parser.parse_args()
 
     if args.animation:
