@@ -6,7 +6,7 @@ import numpy.typing as npt
 
 def get_average_estimate_error(robots_estimates: npt.NDArray, targets_pos_real: npt.NDArray) -> float:
     """
-        Computes the average error between the target's estimated and real positions.
+        Computes the average error between the targets' estimated and real positions.
 
         Args:
             robots_estimates (npt.NDArray):
@@ -43,4 +43,4 @@ def get_average_consensus_error(z: npt.NDArray) -> float:
                 Average consensus error.
     """
     consensus = np.mean(z, axis=0)
-    return np.mean([np.linalg.norm(z[i] - consensus, 2) for i in range(len(z))])
+    return np.mean([ np.linalg.norm(z[i] - consensus, 2) for i in range(len(z)) ])

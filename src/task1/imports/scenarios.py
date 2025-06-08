@@ -20,8 +20,6 @@ def create_network_of_agents(
         Args:
             num_agents (int):
                 Number of agents.
-            adjacency_form (Literal["unweighted", "row-stochastic", "columm-stochastic", "doubly-stochastic"]):
-                Structure of the adjacency matrix.
             graph_form (Literal["complete_graph", "binomial_graph", "cycle_graph", "path_graph", "star_graph"]):
                 Algorithm or structure of the graph.
             binomial_graph_p (float):
@@ -135,6 +133,8 @@ def create_position_tracking_problem(
                 Mean for Gaussian noise.
             gaussian_std (float):
                 Standard deviation for Gaussian noise.
+            poisson_lambda (float):
+                Lambda for Poisson noise.
             noise_ratio (float):
                 Amount of noise to inject into the measured distance.
             seed (int):

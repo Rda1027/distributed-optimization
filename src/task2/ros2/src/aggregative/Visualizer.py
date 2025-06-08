@@ -10,6 +10,9 @@ from .utils import format_message, unpack_message
 from typing import Literal
 
 
+WHITE = (1.0, 1.0, 1.0, 1.0)
+
+
 class Visualizer(Node):
     def __init__(self):
         super().__init__(
@@ -97,7 +100,7 @@ class Visualizer(Node):
 
             # Publish markers
             self.agents_pos_publisher.publish( agents_markers )
-            self.barycenter_pos_publisher.publish( self.__create_marker(0, "barycenter", barycenter, [1.0, 1.0, 1.0, 1.0]) )
+            self.barycenter_pos_publisher.publish( self.__create_marker(0, "barycenter", barycenter, WHITE) )
 
             if self.curr_k > self.max_iters:
                 self.destroy_node()

@@ -20,8 +20,6 @@ def create_network_of_agents(
         Args:
             num_agents (int):
                 Number of agents.
-            adjacency_form (Literal["unweighted", "row-stochastic", "columm-stochastic", "doubly-stochastic"]):
-                Structure of the adjacency matrix.
             graph_form (Literal["complete_graph", "binomial_graph", "cycle_graph", "path_graph", "star_graph"]):
                 Algorithm or structure of the graph.
             binomial_graph_p (float):
@@ -73,14 +71,31 @@ def create_network_of_agents(
 def create_aggregative_problem(
         num_agents: int, 
         vars_dim: int,
-        target_weight: float,
-        barycenter_weight: float,
-        agents_importance: list = None,
+        target_weight: float = 1.0,
+        barycenter_weight: float = 1.0,
+        agents_importance: list[float] = None,
         seed: int = 42
     ):
+    """
+        Creates an instance of the robots positioning aggregative problem.
+
+        Args:
+            num_agents (int):
+                Number of robots to move.
+            vars_dim (int):
+                Dimensionality of the position variables.
+            target_weight (float):
+                Weighs the importance of being close to the private targets.
+            barycenter_weight (float):
+                Weighs the importance of being close to the barycenter.
+            agents_importance (list[float]):
+                List of weights associated to each agent. They are used to compute the barycenter.
+                The values should sum up to `num_agents`.
+            seed (int)
+    """
     rng = np.random.default_rng(seed)
     if agents_importance is None:
-        agents_importance = [1.0] *  num_agents
+        agents_importance = [1.0] * num_agents
 
     targets_pos = rng.random(size=(num_agents, vars_dim))
     agents = [Agent(targets_pos[i], agents_importance[i], target_weight, barycenter_weight) for i in range(num_agents)]

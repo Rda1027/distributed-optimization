@@ -3,61 +3,100 @@ import matplotlib.pyplot as plt
 import matplotlib.animation
 import numpy as np
 
+from .loss import Loss, QuadraticFunction, TargetLocalizationLoss
+
 from typing import Optional
 import numpy.typing as npt
 
 
-def plot_loss_quadratic(loss_fn, history_z, label):
+def plot_loss_quadratic(loss_fn: list[QuadraticFunction], history_z: npt.NDArray, label: str):
     """
-        Plots the cost function, handling both centralized and distributed cases.
+        Plots the cost function for the quadratic task, handling both centralized and distributed cases.
+
+        Args:
+            loss_fn (list[QuadraticFunction]):
+                Loss of each agent.
+            history_z (npt.NDArray):
+                History of the estimates [num_iters x vars_dim] or [num_iters x num_agents x vars_dim].
+            label (str)
     """
     if history_z.ndim == 2: # Centralized case
         plt.plot([ loss_fn(z) for z in history_z ], label=label)
     elif history_z.ndim == 3: # Distributed case
-        plt.plot([ sum(loss_fn[i](z[i]) for i in range(len(z))) for z in history_z ], label=label)
+        plt.plot([ sum(loss_fn[i](z[i]) for i in range(len(loss_fn))) for z in history_z ], label=label)
 
 
-def plot_gradient_quadratic(loss_fn, history_z, label):
+def plot_gradient_quadratic(loss_fn: list[QuadraticFunction], history_z: npt.NDArray, label: str):
     """
-        Plots the norm of the gradient of the cost, handling both centralized and distributed cases.
+        Plots the norm of the gradient of the cost for the quadratic task, handling both centralized and distributed cases.
+
+        Args:
+            loss_fn (list[QuadraticFunction]):
+                Loss of each agent.
+            history_z (npt.NDArray):
+                History of the estimates [num_iters x vars_dim] or [num_iters x num_agents x vars_dim].
+            label (str)
     """
     if history_z.ndim == 2: # Centralized case
         plt.plot([ np.linalg.norm( loss_fn.grad(z), 2 ) for z in history_z ], label=label)
     elif history_z.ndim == 3: # Distributed case
-        plt.plot([ np.linalg.norm( np.sum([loss_fn[i].grad(z[i]) for i in range(len(z))], axis=0), 2 ) for z in history_z ], label=label)
+        plt.plot([ np.linalg.norm( np.sum([loss_fn[i].grad(z[i]) for i in range(len(loss_fn))], axis=0), 2 ) for z in history_z ], label=label)
     plt.yscale("log")
 
 
-def plot_distance_to_optimum_quadratic(loss_fn, history_z, optimum, label):
+def plot_distance_to_optimum_quadratic(loss_fn: list[QuadraticFunction], history_z: npt.NDArray, optimum: float, label: str):
     """
-        Plots the distance of the loss computed at the estimates to the optimum, handling both centralized and distributed cases.
+        Plots the distance of the cost function in the quadratic case to the optimum, handling both centralized and distributed cases.
+
+        Args:
+            loss_fn (list[QuadraticFunction]):
+                Loss of each agent.
+            history_z (npt.NDArray):
+                History of the estimates [num_iters x vars_dim] or [num_iters x num_agents x vars_dim].
+            optimum (float):
+                Optimum of the sum of the cost functions.
+            label (str)
     """
     if history_z.ndim == 2: # Centralized case
         plt.plot([ abs(loss_fn(z) - optimum) for z in history_z ], label=label)
     elif history_z.ndim == 3: # Distributed case
-        plt.plot([ abs(sum(loss_fn[i](z[i]) for i in range(len(z))) - optimum) for z in history_z ], label=label)
+        plt.plot([ abs(sum(loss_fn[i](z[i]) for i in range(len(loss_fn))) - optimum) for z in history_z ], label=label)
     plt.yscale("log")
 
 
-def plot_loss_tracking(loss_fn, history_z, label):
+def plot_loss_tracking(loss_fn: list[TargetLocalizationLoss], history_z: npt.NDArray, label: str):
     """
         Plots the loss function of the aggregative optimization task, handling both centralized and distributed cases.
+
+        Args:
+            loss_fn (list[TargetLocalizationLoss]):
+                Loss of each agent.
+            history_z (npt.NDArray):
+                History of the estimates [num_iters x num_targets x vars_dim] or [num_iters x num_robots x num_targets x vars_dim].
+            label (str)
     """
     if history_z.ndim == 3: # Centralized case
-        plt.plot([ loss_fn(z) for z in history_z ], label=label)
+        plt.plot([ sum(loss_fn[i](z) for i in range(len(loss_fn))) for z in history_z ], label=label)
     elif history_z.ndim == 4: # Distributed case
-        plt.plot([ sum(loss_fn[i](z[i]) for i in range(len(z))) for z in history_z ], label=label)
+        plt.plot([ sum(loss_fn[i](z[i]) for i in range(len(loss_fn))) for z in history_z ], label=label)
     plt.yscale("log")
 
 
-def plot_gradient_tracking(loss_fn, history_z, label):
+def plot_gradient_tracking(loss_fn: list[TargetLocalizationLoss], history_z: npt.NDArray, label: str):
     """
         Plots the norm of the gradient of the loss of the aggregative optimization task, handling both centralized and distributed cases.
+
+        Args:
+            loss_fn (list[TargetLocalizationLoss]):
+                Loss of each agent.
+            history_z (npt.NDArray):
+                History of the estimates [num_iters x num_targets x vars_dim] or [num_iters x num_robots x num_targets x vars_dim].
+            label (str)
     """
     if history_z.ndim == 3: # Centralized case
-        plt.plot([ np.linalg.norm( loss_fn.grad(z) ) for z in history_z ], label=label)
+        plt.plot([ np.linalg.norm( sum(loss_fn[i].grad(z) for i in range(len(loss_fn))) ) for z in history_z ], label=label)
     elif history_z.ndim == 4: # Distributed case
-        plt.plot([ np.linalg.norm( np.sum([loss_fn[i].grad(z[i]) for i in range(len(z))], axis=0) ) for z in history_z ], label=label)
+        plt.plot([ np.linalg.norm( np.sum([loss_fn[i].grad(z[i]) for i in range(len(loss_fn))], axis=0) ) for z in history_z ], label=label)
     plt.yscale("log")
 
 

@@ -43,7 +43,7 @@ def aggregative_step(
     # Parameters update
     z_next = z_i - alpha * (loss.grad1(z_i, s_i) + v_i * phi.grad(z_i))
 
-    # Innovation update
+    # Dynamic average consensus update
     s_next = sum(a_ij * s_j for a_ij, s_j in zip(adj_neighbors, s_neighbors)) + (phi(z_next) - phi(z_i)) 
     v_next = sum(a_ij * v_j for a_ij, v_j in zip(adj_neighbors, v_neighbors)) + (loss.grad2(z_next, s_next) - loss.grad2(z_i, s_i)) 
 

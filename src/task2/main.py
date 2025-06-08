@@ -20,7 +20,7 @@ plt.rcParams["legend.fontsize"] = 12
 
 def aggregative_animate(num_agents, target_weight, barycenter_weight, graph_form, alpha, num_iters, agents_importance, seed):
     """
-        Plain run that plots an animation of the agents.
+        Plain run that plots an animation of the robots.
     """
     rng = np.random.default_rng(seed)
     vars_dim = 2
@@ -95,12 +95,17 @@ def aggregative_comparison(num_agents, vars_dim, graph_forms, alpha, num_iters, 
 
 
 def plot_ros2_logs(logs_dir):
+    """
+        Plots the logs saved from ROS2.
+    """
     agents = []
     history_z = []
     history_sigma = []
     history_v = []
 
+    # Read logs
     for agent_dir in os.listdir(logs_dir):
+        # Read metadata
         with open(os.path.join(logs_dir, agent_dir, "metadata.json"), "r") as f:
             metadata = json.load(f)
             agents.append( 
@@ -112,6 +117,7 @@ def plot_ros2_logs(logs_dir):
                 ) 
             )
 
+        # Read history
         history_z.append( [] )
         history_sigma.append( [] )
         history_v.append( [] )
@@ -121,6 +127,7 @@ def plot_ros2_logs(logs_dir):
                 history_sigma[-1].append([float(s) for s in line[3:5]])
                 history_v[-1].append([float(s) for s in line[5:7]])
     
+    # Moves axes to the expected position
     history_z = np.array(history_z).transpose(1, 0, 2)
     history_sigma = np.array(history_sigma).transpose(1, 0, 2)
     history_v = np.array(history_v).transpose(1, 0, 2)
@@ -154,6 +161,7 @@ if __name__ == "__main__":
     parser.add_argument("--animation-importance", action="store_true", default=False)
     parser.add_argument("--few-agents", action="store_true", default=False)
     parser.add_argument("--more-agents", action="store_true", default=False)
+    parser.add_argument("--lots-agents", action="store_true", default=False)
     parser.add_argument("--ros2", action="store_true", default=False)
     parser.add_argument("--seed", type=int, default=42, help="Initialization seed")
     args = parser.parse_args()

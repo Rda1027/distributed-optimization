@@ -1,5 +1,6 @@
 import numpy as np
 
+import numpy.typing as npt
 
 
 class Loss:
@@ -26,7 +27,14 @@ class QuadraticFunction(Loss):
 
 
 class TargetLocalizationLoss(Loss):
-    def __init__(self, robot_pos, est_targets_dist):
+    def __init__(self, robot_pos: npt.NDArray, est_targets_dist: npt.NDArray):
+        """
+            Args:
+                robot_pos (npt.NDArray):
+                    Position of the tracking robot [VARS_DIM].
+                est_targets_dist (npt.NDArray):
+                    Estimated noisy distances [NUM_TARGETS, VARS_DIM]
+        """
         num_targets = len(est_targets_dist)
         vars_dim = robot_pos.shape[0]
 
@@ -37,6 +45,7 @@ class TargetLocalizationLoss(Loss):
 
     def __fn_builder(self, robot_pos, est_targets_dist, num_targets, vars_dim):
         def _out(z):
+            # For uniformity, the function takes as input the estimates in a flattened form.
             z = z.reshape(num_targets, vars_dim)
             val = sum( 
                 ( est_targets_dist[j]**2 - np.linalg.norm(z[j] - robot_pos, 2)**2 )**2 
@@ -47,6 +56,7 @@ class TargetLocalizationLoss(Loss):
 
     def __grad_builder(self, robot_pos, est_targets_dist, num_targets, vars_dim):
         def _out(z):
+            # Input is flattened (see above).
             z = z.reshape(num_targets, vars_dim)
             grad = np.concatenate([
                 -4 * (est_targets_dist[j]**2 - np.linalg.norm(z[j] - robot_pos, 2)**2) * (z[j] - robot_pos) 

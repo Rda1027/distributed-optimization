@@ -1,14 +1,27 @@
 import numpy as np
 
+import numpy.typing as npt
+
 
 class Agent:
-    def __init__(self, target_pos, agent_importance=1.0, target_weight=1.0, barycenter_weight=1.0):
+    def __init__(self, target_pos: npt.NDArray, agent_importance: float=1.0, target_weight: float=1.0, barycenter_weight: float=1.0):
+        """
+            Args:
+                target_pos (npt.NDArray):
+                    Position of the private target [VARS_DIM].
+                agent_importance (float):
+                    Importance assigned to the agent in the aggregation function.
+                target_weight (float):
+                    Weighs the importance of target vicinity in the loss.
+                barycenter_weight (float):
+                    Weighs the importance of barycenter vicinity in the loss.
+        """
         self.phi = Linear(agent_importance)
         self.loss = AggregativeLoss(target_pos, self.phi, target_weight, barycenter_weight)
 
 
 class AggregativeLoss:
-    def __init__(self, target_pos, phi, target_weight, barycenter_weight):
+    def __init__(self, target_pos: npt.NDArray, phi, target_weight: float, barycenter_weight: float):
         self.target_pos = target_pos
         self.vars_dim = target_pos.shape[0]
         self.phi = phi

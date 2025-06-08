@@ -110,6 +110,7 @@ class Agent(Node):
             self.__log_state()
             self.curr_k += 1
         elif self.__has_received_from_all_neighbors(self.curr_k-1):
+            print(f"{self.id}: curr_z={self.curr_z}")
             self.curr_z, self.curr_sigma, self.curr_grad2 = aggregative_step(
                 z_i = self.curr_z,
                 s_i = self.curr_sigma,

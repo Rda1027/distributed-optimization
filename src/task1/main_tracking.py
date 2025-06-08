@@ -134,7 +134,7 @@ def tracking_centralized(num_robots, num_targets, vars_dim, graph_form, alpha, n
     history_z = gradient_tracking(local_losses, z0.copy(), A, alpha, num_iters)
     history_z = history_z.reshape(-1, num_robots, num_targets, vars_dim)
     history_z_centr = gradient_descent(local_losses, z0[0].copy(), alpha, num_iters)
-    history_z_centr = history_z_centr.reshape(-1, 1, num_targets, vars_dim)
+    history_z_centr = history_z_centr.reshape(-1, num_targets, vars_dim)
 
     # Present results
     print(
@@ -142,8 +142,8 @@ def tracking_centralized(num_robots, num_targets, vars_dim, graph_form, alpha, n
         f" | Average estimated distance error: {get_average_estimate_error(history_z[-1], targets_pos_real):.10f}"
     )
     print(
-        f"Loss {'centralized gradient':<20}: {sum( local_losses[i](history_z_centr[-1, 0].flatten()) for i in range(num_robots) ):.10f}"
-        f" | Average estimated distance error: {get_average_estimate_error(history_z_centr[-1], targets_pos_real):.10f}"
+        f"Loss {'centralized gradient':<20}: {sum( local_losses[i](history_z_centr[-1].flatten()) for i in range(num_robots) ):.10f}"
+        f" | Average estimated distance error: {get_average_estimate_error(np.expand_dims(history_z_centr[-1], 0), targets_pos_real):.10f}"
     )
 
     plt.figure(figsize=(16, 5))
@@ -151,7 +151,7 @@ def tracking_centralized(num_robots, num_targets, vars_dim, graph_form, alpha, n
     plt.subplot(1, 2, 1)
     plt.title("Loss")
     plot_loss(local_losses, history_z, f"Gradient tracking")
-    plt.plot([ sum(local_losses[i](z.flatten()) for i in range(num_robots)) for z in history_z_centr ], label="Centralized gradient")
+    plot_loss(local_losses, history_z_centr, f"Centralized gradient")
     plt.xlabel("$k$")
     plt.ylabel("$l(z^k)$ (log)")
     plt.legend()
@@ -159,7 +159,7 @@ def tracking_centralized(num_robots, num_targets, vars_dim, graph_form, alpha, n
     plt.subplot(1, 2, 2)
     plt.title("Norm of loss gradient")
     plot_gradient(local_losses, history_z, f"Gradient tracking")
-    plt.plot([ np.linalg.norm(np.sum([local_losses[i].grad(z.flatten()) for i in range(num_robots)], axis=0)) for z in history_z_centr ], label="Centralized gradient")
+    plot_gradient(local_losses, history_z_centr, f"Centralized gradient")
     plt.xlabel("$k$")
     plt.ylabel("$\\left\\Vert \\nabla l(z^k) \\right\\Vert_2$ (log)")
     plt.legend()
@@ -170,7 +170,7 @@ def tracking_centralized(num_robots, num_targets, vars_dim, graph_form, alpha, n
 
 def tracking_noise(num_robots, num_targets, vars_dim, graph_form, alpha, num_iters, noise_type, noise_args_list, seed):
     """
-        Experiment to compare the algorithm with the centralized gradient method.
+        Experiment to compare the algorithm with different noises.
     """
     rng = np.random.default_rng(seed)
     network_seed = int(rng.integers(0, 2**32))
