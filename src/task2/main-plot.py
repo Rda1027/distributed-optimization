@@ -12,7 +12,7 @@ plt.rcParams["font.family"] = "cmr10"
 plt.rcParams["mathtext.fontset"] = "cm"
 plt.rcParams["axes.formatter.use_mathtext"] = True
 plt.rcParams["font.size"] = 26
-plt.rcParams["legend.fontsize"] = 16
+plt.rcParams["legend.fontsize"] = 26
 
 
 
@@ -57,6 +57,8 @@ def aggregative_animate(num_agents, target_weight, barycenter_weight, graph_form
             draw_line_to_target = True,
             past_positions = history_z[:t],
             show_legend=(i == (len(to_plot_timesteps)-1)))
+        if i == (len(to_plot_timesteps)-1): 
+            plt.legend(labelspacing=0.25, bbox_to_anchor=(1.0, 1.1))
         plt.xlim(xlim_min, xlim_max)
         plt.ylim(ylim_min, ylim_max)
     plt.savefig(f"figs/{out_dir}/anim.pdf", bbox_inches="tight")
@@ -89,23 +91,25 @@ def aggregative_comparison(num_agents, vars_dim, graph_forms, alpha, num_iters, 
             f"{f'[{graph_form}]':<20} Loss: {sum( agents[i].loss(history_z[graph_form][-1, i], history_sigma[graph_form][-1, i]) for i in range(num_agents) ):.10f}"
         )
 
-    plt.figure(figsize=(16, 8))
 
-    plt.figure(figsize=(8, 5.5))
+    def __label_normalize(label):
+        return label.replace("_", "-").replace("-graph", "")
+
+    plt.figure(figsize=(8, 5))
     for graph_form in graph_forms:
-        plot_loss(agents, history_z[graph_form], history_sigma[graph_form], f"{graph_form.replace('_', '-')}")
+        plot_loss(agents, history_z[graph_form], history_sigma[graph_form], f"{__label_normalize(graph_form)}")
     plt.xlabel("$k$")
     plt.ylabel("$l(z^k)$ (log)")
-    plt.legend()
+    plt.legend(ncol=3, loc="upper center", columnspacing=0.8, labelspacing=0.25, bbox_to_anchor=(0.4, 1.35))
     plt.savefig(f"figs/{out_dir}/loss.pdf", bbox_inches="tight")
     plt.close()
 
-    plt.figure(figsize=(8, 5.5))
+    plt.figure(figsize=(8, 5))
     for graph_form in graph_forms:
-        plot_gradient(agents, history_z[graph_form], history_sigma[graph_form], history_v[graph_form], f"{graph_form.replace('_', '-')}")
+        plot_gradient(agents, history_z[graph_form], history_sigma[graph_form], history_v[graph_form], f"{__label_normalize(graph_form)}")
     plt.xlabel("$k$")
-    plt.ylabel("$\\left\\Vert \\nabla l(z^k) \\right\\Vert_2$ (log)")
-    plt.legend()
+    plt.ylabel("Gradient norm (log)")
+    plt.legend(ncol=3, loc="upper center", columnspacing=0.8, labelspacing=0.25, bbox_to_anchor=(0.4, 1.35))
     plt.savefig(f"figs/{out_dir}/gradient.pdf", bbox_inches="tight")
     plt.close()
 
@@ -115,7 +119,6 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=42, help="Initialization seed")
     args = parser.parse_args()
 
-    # print("--- Running with animation ---")
     # aggregative_animate(
     #     num_agents = 5,
     #     barycenter_weight = 1.0,
@@ -129,7 +132,6 @@ if __name__ == "__main__":
     #     to_plot_timesteps = [0, 50, 5000]
     # )
 
-    # print("--- Running with animation (more weight for targets) ---")
     # aggregative_animate(
     #     num_agents = 5,
     #     barycenter_weight = 0.2,
@@ -143,7 +145,6 @@ if __name__ == "__main__":
     #     to_plot_timesteps = [0, 50, 5000]
     # )
 
-    # print("--- Running with animation (more weight for barycenter) ---")
     # aggregative_animate(
     #     num_agents = 5,
     #     barycenter_weight = 1.0,
@@ -157,7 +158,6 @@ if __name__ == "__main__":
     #     to_plot_timesteps = [0, 50, 5000]
     # )
 
-    # print("--- Running with animation (differen agents importance) ---")
     # aggregative_animate(
     #     num_agents = 5,
     #     barycenter_weight = 1.0,
@@ -171,27 +171,25 @@ if __name__ == "__main__":
     #     to_plot_timesteps = [0, 50, 5000]
     # )
 
-    # print("--- Comparison with few agents ---")
-    # aggregative_comparison(
-    #     num_agents = 5,
-    #     vars_dim = 2,
-    #     graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
-    #     alpha = 1e-2,
-    #     num_iters = 5000,
-    #     seed = args.seed,
-    #     out_dir = "few_agents"
-    # )
+    aggregative_comparison(
+        num_agents = 5,
+        vars_dim = 2,
+        graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
+        alpha = 1e-2,
+        num_iters = 5000,
+        seed = args.seed,
+        out_dir = "few_agents"
+    )
 
-    # print("--- Comparison with more agents ---")
-    # aggregative_comparison(
-    #     num_agents = 15,
-    #     vars_dim = 2,
-    #     graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
-    #     alpha = 1e-2,
-    #     num_iters = 5000,
-    #     seed = args.seed,
-    #     out_dir = "more_agents"
-    # )
+    aggregative_comparison(
+        num_agents = 15,
+        vars_dim = 2,
+        graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
+        alpha = 1e-2,
+        num_iters = 5000,
+        seed = args.seed,
+        out_dir = "more_agents"
+    )
 
     aggregative_comparison(
         num_agents = 30,

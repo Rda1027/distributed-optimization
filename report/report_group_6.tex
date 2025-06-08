@@ -183,7 +183,7 @@ For the starting small problem, we can observe from \Cref{fig:quadratic_5_3} a r
       \begin{subfigure}[t]{0.46\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/5_15/distance.pdf} 
-            \caption{Cost evolution}
+            \caption{Distance to optimum}
       \end{subfigure}
       \hfill
       \begin{subfigure}[t]{0.46\linewidth}
@@ -209,7 +209,7 @@ In the case of many agents with lower dimensionality, we can observe from \Cref{
       \begin{subfigure}[t]{0.46\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/15_3/distance.pdf} 
-            \caption{Cost evolution}
+            \caption{Distance to optimum}
       \end{subfigure}
       \hfill
       \begin{subfigure}[t]{0.46\linewidth}
@@ -226,7 +226,7 @@ In the case of many agents with lower dimensionality, we can observe from \Cref{
       \begin{subfigure}[t]{0.46\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/30_3/distance.pdf} 
-            \caption{Cost evolution}
+            \caption{Distance to optimum}
       \end{subfigure}
       \hfill
       \begin{subfigure}[t]{0.46\linewidth}
@@ -243,7 +243,7 @@ In the case of many agents with lower dimensionality, we can observe from \Cref{
       \begin{subfigure}[t]{0.46\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/15_15/distance.pdf} 
-            \caption{Cost evolution}
+            \caption{Distance to optimum}
       \end{subfigure}
       \hfill
       \begin{subfigure}[t]{0.46\linewidth}
@@ -260,7 +260,7 @@ In the case of many agents with lower dimensionality, we can observe from \Cref{
       \begin{subfigure}[t]{0.46\linewidth}
             \centering
             \includegraphics[width=\linewidth]{./figs/quadratic/30_15/distance.pdf} 
-            \caption{Cost evolution}
+            \caption{Distance to optimum}
       \end{subfigure}
       \hfill
       \begin{subfigure}[t]{0.46\linewidth}
@@ -271,32 +271,6 @@ In the case of many agents with lower dimensionality, we can observe from \Cref{
       \caption{Quadratic function minimization with $30$ agents in $\R^{15}$}
       \label{fig:quadratic_30_15}
 \end{figure}
-
-
-% At last, we experimented with a higher number of iterations to analyze the behavior at convergence. From \Cref{fig:quadratic_15_3_1000}, we can observe that the configuration with a complete graph is the one that converges with the most precise gradient, while the worst performing is the path graph that is the slowest to converge.
-
-% \begin{figure}[H]
-%       \centering
-%       \begin{subfigure}[t]{0.46\linewidth}
-%             \centering
-%             \includegraphics[width=\linewidth]{./figs/quadratic/15_3/distance.pdf} 
-%             \caption{Cost evolution}
-%       \end{subfigure}
-%       \hfill
-%       \begin{subfigure}[t]{0.46\linewidth}
-%             \centering
-%             \includegraphics[width=\linewidth]{./figs/quadratic/15_3/gradient.pdf} 
-%             \caption{Gradient norm evolution}
-%       \end{subfigure}
-%       % \hfill
-%       % \begin{subfigure}[t]{0.46\linewidth}
-%       %       \centering
-%       %       \includegraphics[width=\linewidth]{./figs/quadratic/15_3/consensus.pdf} 
-%       %       \caption{Consensus error}
-%       % \end{subfigure}
-%       \caption{Quadratic function minimization with $15$ agents in $\R^{3}$ to convergence}
-%       \label{fig:quadratic_15_3_1000}
-% \end{figure}
 
 
 \subsection{Comparison with centralized gradient}

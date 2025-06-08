@@ -16,16 +16,13 @@ from imports.plot import \
 plt.rcParams["font.family"] = "cmr10"
 plt.rcParams["mathtext.fontset"] = "cm"
 plt.rcParams["axes.formatter.use_mathtext"] = True
-plt.rcParams["font.size"] = 24
-plt.rcParams["legend.fontsize"] = 16
+plt.rcParams["font.size"] = 26
+plt.rcParams["legend.fontsize"] = 26
 
 
 
 def quadratic_comparison(num_agents, vars_dim, graph_forms, alpha, num_iters, seed, out_dir):
     os.makedirs(os.path.join("figs", out_dir), exist_ok=True)
-    """
-        Experiment to compare the gradient tracking algorithm with different graphs.
-    """
     rng = np.random.default_rng(seed)
     network_seed = int(rng.integers(0, 2**32))
     problem_seed = int(rng.integers(0, 2**32))
@@ -47,50 +44,49 @@ def quadratic_comparison(num_agents, vars_dim, graph_forms, alpha, num_iters, se
     for graph_form in graph_forms:
         print(f"Cost {graph_form:<15}: {estimated_cost[graph_form]:.10f} | Diff: {abs(estimated_cost[graph_form] - optimal_cost):.10f}")
 
+    def __label_normalize(label):
+        return label.replace("_", "-").replace("-graph", "")
 
-    plt.figure(figsize=(8, 5.5))
+    plt.figure(figsize=(8, 5))
     for graph_form in graph_forms:
-        plot_loss(local_quadratics, history_z[graph_form], f"{graph_form.replace('_', '-')}")
+        plot_loss(local_quadratics, history_z[graph_form], f"{__label_normalize(graph_form)}")
     plt.plot([optimal_cost]*(num_iters+1), "--", label="optimum")
     plt.xlabel("$k$")
     plt.ylabel("$f(z^k)$")
-    plt.legend()
+    plt.legend(ncol=3, loc="upper center", columnspacing=0.8, labelspacing=0.25, bbox_to_anchor=(0.4, 1.35))
     plt.savefig(f"figs/{out_dir}/cost.pdf", bbox_inches="tight")
     plt.close()
 
-    plt.figure(figsize=(8, 5.5))
+    plt.figure(figsize=(8, 5))
     for graph_form in graph_forms:
-        plot_gradient(local_quadratics, history_z[graph_form], f"{graph_form.replace('_', '-')}")
+        plot_gradient(local_quadratics, history_z[graph_form], f"{__label_normalize(graph_form)}")
     plt.xlabel("$k$")
     plt.ylabel("$\\left\\Vert \\nabla f(z^k) \\right\\Vert_2$ (log)")
-    plt.legend()
+    plt.legend(ncol=3, loc="upper center", columnspacing=0.8, labelspacing=0.25, bbox_to_anchor=(0.4, 1.35))
     plt.savefig(f"figs/{out_dir}/gradient.pdf", bbox_inches="tight")
     plt.close()
 
-    plt.figure(figsize=(8, 5.5))
+    plt.figure(figsize=(8, 5))
     for graph_form in graph_forms:
-        plot_distance_to_optimum(local_quadratics, history_z[graph_form], optimal_cost, f"{graph_form.replace('_', '-')}")
+        plot_distance_to_optimum(local_quadratics, history_z[graph_form], optimal_cost, f"{__label_normalize(graph_form)}")
     plt.xlabel("$k$")
     plt.ylabel("Distance to optimum (log)")
-    plt.legend()
+    plt.legend(ncol=3, loc="upper center", columnspacing=0.8, labelspacing=0.25, bbox_to_anchor=(0.4, 1.35))
     plt.savefig(f"figs/{out_dir}/distance.pdf", bbox_inches="tight")
     plt.close()
 
-    plt.figure(figsize=(8, 5.5))
+    plt.figure(figsize=(8, 5))
     for graph_form in graph_forms:
-        plt.plot([get_average_consensus_error(z) for z in history_z[graph_form]], label=f"{graph_form.replace('_', '-')}")
+        plt.plot([get_average_consensus_error(z) for z in history_z[graph_form]], label=f"{__label_normalize(graph_form)}")
     plt.xlabel("$k$")
-    plt.ylabel("Average consensus error (log)")
+    plt.ylabel("Avg consensus error (log)")
     plt.yscale("log")
-    plt.legend()
+    plt.legend(ncol=3, loc="upper center", columnspacing=0.8, labelspacing=0.25, bbox_to_anchor=(0.4, 1.35))
     plt.savefig(f"figs/{out_dir}/consensus.pdf", bbox_inches="tight")
     plt.close()
 
 
 def quadratic_centralized(num_agents, vars_dim, graph_form, alpha, num_iters, seed, out_dir):
-    """
-        Experiment to compare the gradient tracking algorithm with the centralized gradient method.
-    """
     os.makedirs(os.path.join("figs", out_dir), exist_ok=True)
     rng = np.random.default_rng(seed)
 
@@ -110,31 +106,31 @@ def quadratic_centralized(num_agents, vars_dim, graph_form, alpha, num_iters, se
     print(f"Cost {'gradient tracking':<20}: {estimated_cost:.10f} | Diff: {abs(estimated_cost - optimal_cost):.10f}")
     print(f"Cost {'centralized gradient':<20}: {estimated_cost_centr:.10f} | Diff: {abs(estimated_cost_centr - optimal_cost):.10f}")
 
-    plt.figure(figsize=(8, 5.5))
-    plot_loss(local_quadratics, history_z, "Gradient tracking")
-    plot_loss(global_quadratic, history_z_centr, "Centralized gradient")
+    plt.figure(figsize=(8, 5))
+    plot_loss(local_quadratics, history_z, "Distributed")
+    plot_loss(global_quadratic, history_z_centr, "Centralized")
     plt.plot([optimal_cost]*(num_iters+1), "--", label="Optimum")
     plt.xlabel("$k$")
     plt.ylabel("$f(z^k)$")
-    plt.legend()
+    plt.legend(ncol=2, loc="upper center", columnspacing=0.8, labelspacing=0.25, bbox_to_anchor=(0.4, 1.35))
     plt.savefig(f"figs/{out_dir}/loss.pdf", bbox_inches="tight")
     plt.close()
 
-    plt.figure(figsize=(8, 5.5))
-    plot_gradient(local_quadratics, history_z, "Gradient tracking")
-    plot_gradient(global_quadratic, history_z_centr, "Centralized gradient")
+    plt.figure(figsize=(8, 5))
+    plot_gradient(local_quadratics, history_z, "Distributed")
+    plot_gradient(global_quadratic, history_z_centr, "Centralized")
     plt.xlabel("$k$")
     plt.ylabel("$\\left\\Vert \\nabla f(z^k) \\right\\Vert_2$ (log)")
-    plt.legend()
+    plt.legend(ncol=2, loc="upper center", columnspacing=0.8, labelspacing=0.25, bbox_to_anchor=(0.4, 1.25))
     plt.savefig(f"figs/{out_dir}/gradient.pdf", bbox_inches="tight")
     plt.close()
 
-    plt.figure(figsize=(8, 5.5))
-    plot_distance_to_optimum(local_quadratics, history_z, optimal_cost, "Gradient tracking")
-    plot_distance_to_optimum(global_quadratic, history_z_centr, optimal_cost, "Centralized gradient")
+    plt.figure(figsize=(8, 5))
+    plot_distance_to_optimum(local_quadratics, history_z, optimal_cost, "Distributed")
+    plot_distance_to_optimum(global_quadratic, history_z_centr, optimal_cost, "Centralized")
     plt.xlabel("$k$")
     plt.ylabel("Distance to optimum (log)")
-    plt.legend()
+    plt.legend(ncol=2, loc="upper center", columnspacing=0.8, labelspacing=0.25, bbox_to_anchor=(0.4, 1.25))
     plt.savefig(f"figs/{out_dir}/distance.pdf", bbox_inches="tight")
     plt.close()
 
@@ -180,32 +176,32 @@ if __name__ == "__main__":
     #     out_dir = "15_15"
     # )
 
-    quadratic_comparison(
-        num_agents = 30,
-        vars_dim = 3,
-        graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
-        alpha = 5e-2,
-        num_iters = 5000,
-        seed = 42,
-        out_dir = "30_3"
-    )
-
-    quadratic_comparison(
-        num_agents = 30,
-        vars_dim = 15,
-        graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
-        alpha = 5e-2,
-        num_iters = 5000,
-        seed = 42,
-        out_dir = "30_15"
-    )
-
-    # quadratic_centralized(
-    #     num_agents = 15,
+    # quadratic_comparison(
+    #     num_agents = 30,
     #     vars_dim = 3,
-    #     graph_form = "complete_graph",
+    #     graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
     #     alpha = 5e-2,
     #     num_iters = 5000,
     #     seed = 42,
-    #     out_dir = "centralized"
+    #     out_dir = "30_3"
     # )
+
+    # quadratic_comparison(
+    #     num_agents = 30,
+    #     vars_dim = 15,
+    #     graph_forms = ["complete_graph", "binomial_graph", "cycle_graph", "star_graph", "path_graph"],
+    #     alpha = 5e-2,
+    #     num_iters = 5000,
+    #     seed = 42,
+    #     out_dir = "30_15"
+    # )
+
+    quadratic_centralized(
+        num_agents = 15,
+        vars_dim = 3,
+        graph_form = "complete_graph",
+        alpha = 5e-2,
+        num_iters = 5000,
+        seed = 42,
+        out_dir = "centralized"
+    )
