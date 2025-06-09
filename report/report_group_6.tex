@@ -392,7 +392,7 @@ In terms of graph patterns, we can observe from \Cref{fig:tracking_5_1,fig:track
 \end{figure}
 
 
-Instead, by increasing the number of tracking robots, we can see from \Cref{fig:tracking_15_3,fig:tracking_30_3} that the plateau is reached in fewer number of iteration, which intuitively means that more tracking robots help in reaching a faster convergence. Moreover, we can also observe from these figures that, as we already mentioned, with less connected graphs convergence is affected negatively.
+Instead, by increasing the number of tracking robots, we can see from \Cref{fig:tracking_15_3,fig:tracking_30_3} that the plateau is reached in fewer number of iterations, which intuitively means that more tracking robots help in reaching a faster convergence. Moreover, we can also observe from these figures that, as we already mentioned, with less connected graphs convergence is affected negatively.
 
 \begin{figure}[h!]
       \centering
@@ -587,7 +587,7 @@ For the ROS2 version, the agent is implemented using the node defined in \texttt
 
 \section{Experiments}
 
-As in the previous task, we first test the effectiveness of our implementation with different graph patterns for the communication graph and different number of agents. We test with configurations consisting of $5$, $15$, and $30$ robots. Then, to assess the actual results, we visually check the coherence of the positioning of the agents at convergence and experiment with different loss hyperparameters to favor specific agents, target vicinity or fleet tightness.
+As in the previous task, we first test the effectiveness of our implementation with different graph patterns for the communication graph and different number of agents. We test with configurations consisting of $5$, $15$, and $30$ robots. Then, to assess the actual results, we visually check the coherence of the positioning of the agents at convergence and experiment with different loss hyperparameters to favor specific agents, target vicinity, or fleet tightness.
 
 
 \subsection{Comparison with different graph patterns}
@@ -696,7 +696,7 @@ Then, we continue the experiments by checking the results in terms of different 
 
 In this project, we tackled and experimented with the problems of multi-robot target localization and positioning. Regarding the multi-robot target localization problem, we tested the variation in performance under different graph patterns, number of agents, and dimensionality of the state variables. These tests showed that all graph patterns converge and higher graph connectivity helps in reaching it faster, which is more noticeable in case of larger numbers of agents. Other tests showed that under different noise distributions and intensities, tracking accuracy, as expected, is higher with more agents and worsens for stronger amounts of noise.
 
-Regarding the multi-robot positioning problem, we first observed similar trends for all the configurations in terms of loss and gradient behavior, independently of the number of robots or the communication graph pattern. Additional experiments were performed and assessed visually by changing the loss hyperparameters affecting robots' importance, target vicinity and fleet tightness. Results showed that the loss function provides flexibility in tuning these constraints and the robots' final positions were the expected ones.
+Regarding the multi-robot positioning problem, we first observed similar trends for all the configurations in terms of loss and gradient behavior, independently of the number of robots or the communication graph pattern. Additional experiments were performed and assessed visually by changing the loss hyperparameters affecting robots' importance, target vicinity, and fleet tightness. Results showed that the loss function provides flexibility in tuning these constraints and the robots' final positions were the expected ones.
 
 
 
